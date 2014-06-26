@@ -9,12 +9,12 @@ This library is much better than ccondom (that use BOB), much more stable and mu
 **What works:**
 
 * Utils
-   * Resolving URLs to I2P destinations
-   * .b32.i2p hashes
-   * Generating keys/i2p destinations
+    * Resolving URLs to I2P destinations
+    * .b32.i2p hashes
+    * Generating keys/i2p destinations
 * Streaming
-   * DialI2P() - Connecting to stuff in I2P
-   * Listen()/Accept() - Handling incomming connections
+    * DialI2P() - Connecting to stuff in I2P
+    * Listen()/Accept() - Handling incomming connections
 
 **Does not work:**
 
