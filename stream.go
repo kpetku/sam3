@@ -21,7 +21,7 @@ type StreamSession struct {
 	err         error
 }
 
-// Returns the local tunnel name of the I2P tunnel used to carry the stream session
+// Returns the local tunnel name of the I2P tunnel used for the stream session
 func (ss StreamSession) ID() string {
 	return ss.id
 }
@@ -31,13 +31,13 @@ func (ss StreamSession) Addr() I2PAddr {
 	return ss.keys.Addr()
 }
 
-// Returns the cypher keys associated with the stream session
+// Returns the keys associated with the stream session
 func (ss StreamSession) Keys() I2PKeys {
 	return ss.keys
 }
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as 
-// specified. All other StreamingSession constructors are variants of this one.
+// specified. See the I2P documentation for a full list of options.
 func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*StreamSession, error) {
 	conn, err := sam.newGenericSession("STREAM", id, keys, options)
 	if err != nil {
@@ -46,7 +46,7 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 	return &StreamSession{sam.address, id, conn, keys, nil, sync.Mutex{}, nil}, nil
 }
 
-// Dials to an I2P destination, returns a SAMConn, which implements a net.Conn.
+// Dials to an I2P destination and returns a SAMConn, which implements a net.Conn.
 func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
 	sam, err := NewSAM(s.samAddr)
 	if err != nil {
@@ -183,7 +183,7 @@ func (l *StreamListener) Accept() (*SAMConn, error) {
 	return &SAMConn{l.laddr, rAddr, conn}, nil
 }
 
-// Implements net.Listener
+// Closes the stream session. Implements net.Listener
 func (l *StreamListener) Close() error {
 	err := l.listener.Close()
 	err2 := l.conn.Close()
@@ -193,7 +193,7 @@ func (l *StreamListener) Close() error {
 	return err
 }
 
-// Implements net.Listener
+// Returns the I2P destination (address) of the stream session. Implements net.Listener
 func (l *StreamListener) Addr() net.Addr {
 	return l.laddr
 }

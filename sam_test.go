@@ -26,12 +26,12 @@ func Test_Basic(t *testing.T) {
 	}
 	
 	fmt.Println("\tCreating new keys...")
-	addr, keys, err := sam.NewKeys()
+	keys, err := sam.NewKeys()
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fail()
 	} else {
-		fmt.Println("\tAddress created: " + addr.Base32())
+		fmt.Println("\tAddress created: " + keys.Addr().Base32())
 		fmt.Println("\tI2PKeys: " + string(keys.priv)[:50] + "(...etc)")
 	}
 	
@@ -62,7 +62,7 @@ func Test_GenericSession(t *testing.T) {
 		t.Fail()
 		return
 	}
-	_, keys, err := sam.NewKeys()
+	keys, err := sam.NewKeys()
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fail()
@@ -109,7 +109,7 @@ func Test_StreamingDial(t *testing.T) {
 		return
 	}
 	defer sam.Close()
-	_, keys, err := sam.NewKeys()
+	keys, err := sam.NewKeys()
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fail()
@@ -163,7 +163,7 @@ func Test_StreamingServerClient(t *testing.T) {
 		return
 	}
 	defer sam.Close()
-	_, keys, err := sam.NewKeys()
+	keys, err := sam.NewKeys()
 	if err != nil {
 		t.Fail()
 		return
@@ -184,7 +184,7 @@ func Test_StreamingServerClient(t *testing.T) {
 			return
 		}
 		defer sam2.Close()
-		_, keys, err := sam2.NewKeys()
+		keys, err := sam2.NewKeys()
 		if err != nil {
 			c <- false
 			return

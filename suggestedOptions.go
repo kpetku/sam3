@@ -1,5 +1,6 @@
 package sam3
 
+// Examples and suggestions for options when creating sessions.
 var (
 	// Suitable options if you are shuffling A LOT of traffic. If unused, this 
 	// will waste your resources.
@@ -20,7 +21,10 @@ var (
  	"inbound.backupQuantity=0", "outbound.backupQuantity=0",
 	"inbound.quantity=2", "outbound.quantity=2"}
 
-	// Suitable for small and quick dataflows.
+	// Suitable only for small dataflows, and very short lasting connections:
+	// You only have one tunnel in each direction, so if any of the nodes 
+	// through which any of your two tunnels pass through go offline, there will
+	// be a complete halt in the dataflow, until a new tunnel is built.
 	Options_Small = []string{"inbound.length=3", "outbound.length=3",
 	"inbound.lengthVariance=1", "outbound.lengthVariance=1",
  	"inbound.backupQuantity=0", "outbound.backupQuantity=0",

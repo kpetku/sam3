@@ -1,3 +1,4 @@
+// Library for I2Ps SAMv3 bridge (https://geti2p.com)
 package sam3
 
 import (
@@ -6,8 +7,6 @@ import (
 	"net"
 	"errors"
 	"strings"
-	
-//	"fmt"
 )
 
 
@@ -49,14 +48,17 @@ func NewSAM(address string) (*SAM, error) {
 	}
 }
 
-func (sam *SAM) NewKeys() (I2PAddr, I2PKeys, error) {
+// Creates the I2P-equivalent of an IP address, that is unique and only the one
+// who has the private keys can send messages from. The public keys are the I2P 
+// desination (the address) that anyone can send messages to.
+func (sam *SAM) NewKeys() (I2PKeys, error) {
 	if _, err := sam.conn.Write([]byte("DEST GENERATE\n")); err != nil {
-		return I2PAddr(""), I2PKeys{}, err
+		return I2PKeys{}, err
 	}
 	buf := make([]byte, 8192)
 	n, err := sam.conn.Read(buf)
 	if err != nil {
-		return I2PAddr(""), I2PKeys{}, err
+		return I2PKeys{}, err
 	}
 	s := bufio.NewScanner(bytes.NewReader(buf[:n]))
 	s.Split(bufio.ScanWords)
@@ -73,17 +75,19 @@ func (sam *SAM) NewKeys() (I2PAddr, I2PKeys, error) {
 		} else if strings.HasPrefix(text, "PRIV=") {
 			priv = text[5:]
 		} else {
-			return I2PAddr(""), I2PKeys{}, errors.New("Failed to parse keys.")
+			return I2PKeys{}, errors.New("Failed to parse keys.")
 		}
 	}
-	return I2PAddr(pub), I2PKeys{I2PAddr(pub), priv}, nil
+	return I2PKeys{I2PAddr(pub), priv}, nil
 }
 
+// Performs a lookup, probably this order: 1) routers known addresses, cached
+// addresses, 3) by asking peers in the I2P network.
 func (sam *SAM) Lookup(name string) (I2PAddr, error) {
 	if _, err := sam.conn.Write([]byte("NAMING LOOKUP NAME=" + name + "\n")); err != nil {
 		return I2PAddr(""), err
 	}
-	buf := make([]byte, 8192)
+	buf := make([]byte, 4096)
 	n, err := sam.conn.Read(buf)
 	if err != nil {
 		return I2PAddr(""), err
@@ -118,8 +122,9 @@ func (sam *SAM) Lookup(name string) (I2PAddr, error) {
 
 // Creates a new session with the style of either "STREAM", "DATAGRAM" or "RAW", 
 // for a new I2P tunnel with name id, using the cypher keys specified, with the
-// I2CP/streaminglib-options as specified. Returns the newly created connection
-// to the SAMv3 bridge.
+// I2CP/streaminglib-options as specified. Returns the connection used to 
+// control the SAMv3 bridge. The SAM-object should be treated as destroyed after
+// calling this function on it.
 func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []string) (net.Conn, error) {
 	sam2, err := NewSAM(sam.address)
 	if err != nil {
@@ -174,10 +179,8 @@ func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []stri
 	}
 }
 
-func (sam *SAM) NewDatagramSession(tunnelName string, keys I2PKeys, length, variance, backup int) (*DatagramSession, error) {
-	return nil, errors.New("Not implemented.")
-}
-
+// Closes the connection to SAM. Does not affect sessions or listeners created,
+// they need to be closed separately.
 func (sam *SAM) Close() error {
 	if err := sam.conn.Close(); err != nil {
 		return err
