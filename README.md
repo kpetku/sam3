@@ -32,7 +32,7 @@ This library is much better than ccondom (that use BOB), much more stable and mu
 * Goto http://localhost:8081, click packages, and navigate to sam3
 
 ## Examples ##
-´´´go
+```go
 package main
 
 import (
@@ -63,7 +63,7 @@ func main() {
 	n,_ := conn.Read(buf)
 	fmt.Println("Server received: " + string(buf[:n]))
 }
-´´´
+```
 
 The above will write to the terminal:
 
