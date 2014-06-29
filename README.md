@@ -45,7 +45,7 @@ const yoursam = "127.0.0.1:7656" // sam bridge
 func client(server I2PAddr) {
 	sam, _ := NewSAM(yoursam)
 	keys, _ := sam.NewKeys()
-	stream, _ := sam2.NewStreamSession("clientTun", keys, Options_Small)
+	stream, _ := sam.NewStreamSession("clientTun", keys, Options_Small)
 	fmt.Println("Client: Connecting to " + server.Base32())
 	conn, _ := stream.DialI2P(server)
 	conn.Write([]byte("Hello world!"))
@@ -60,7 +60,7 @@ func main() {
 	listener, _ := stream.Listen()
 	conn, _ := listener.Accept()
 	buf := make([]byte, 4096)
-	n,_ := conn.Read(buf)
+	n, _ := conn.Read(buf)
 	fmt.Println("Server received: " + string(buf[:n]))
 }
 ```
