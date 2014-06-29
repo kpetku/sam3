@@ -122,10 +122,11 @@ func (sam *SAM) Lookup(name string) (I2PAddr, error) {
 
 // Creates a new session with the style of either "STREAM", "DATAGRAM" or "RAW", 
 // for a new I2P tunnel with name id, using the cypher keys specified, with the
-// I2CP/streaminglib-options as specified. Returns the connection used to 
-// control the SAMv3 bridge. The SAM-object should be treated as destroyed after
-// calling this function on it.
-func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []string) (net.Conn, error) {
+// I2CP/streaminglib-options as specified. Extra arguments can be specified by
+// setting extra to something else than []string{}. Returns the connection used
+// to control the SAMv3 bridge. The SAM-object should be treated as destroyed 
+// after calling this function on it.
+func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []string, extras []string) (net.Conn, error) {
 	sam2, err := NewSAM(sam.address)
 	if err != nil {
 		return nil, errors.New("Unable to create new streaming tunnel.")
@@ -136,7 +137,7 @@ func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []stri
 	}
 	
 	conn := sam2.conn
-	scmsg := []byte("SESSION CREATE STYLE=" + style + " ID=" + id + " DESTINATION=" + keys.String() + " " + optStr + "\n")
+	scmsg := []byte("SESSION CREATE STYLE=" + style + " ID=" + id + " DESTINATION=" + keys.String() + " " + optStr + strings.Join(extras, " ") + "\n")
 	for m, i:=0, 0; m!=len(scmsg); i++ {
 		if i == 15 {
 			conn.Close()

@@ -15,11 +15,13 @@ This library is much better than ccondom (that use BOB), much more stable and mu
 * Streaming
     * DialI2P() - Connecting to stuff in I2P
     * Listen()/Accept() - Handling incomming connections
+    * Implements net.Conn and net.Listener
+* Datagrams
+    * Implements net.PacketConn
 
 **Does not work:**
 
-* Datagram sockets
-* Raw sockets
+* Raw packets
 
 ## Documentation ##
 

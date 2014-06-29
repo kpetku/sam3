@@ -4,9 +4,10 @@ package sam3
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
-//	"time"
+	"time"
 )
 
 
@@ -32,7 +33,7 @@ func Test_Basic(t *testing.T) {
 		t.Fail()
 	} else {
 		fmt.Println("\tAddress created: " + keys.Addr().Base32())
-		fmt.Println("\tI2PKeys: " + string(keys.priv)[:50] + "(...etc)")
+		fmt.Println("\tI2PKeys: " + string(keys.both)[:50] + "(...etc)")
 	}
 	
 	addr2, err := sam.Lookup("zzz.i2p")
@@ -122,6 +123,7 @@ func Test_StreamingDial(t *testing.T) {
 		t.Fail()
 		return
 	}
+	fmt.Println("\tNotice: This may fail if your I2P node is not well integrated in the I2P network.")
 	fmt.Println("\tLooking up forum.i2p")
 	forumAddr, err := sam.Lookup("forum.i2p")
 	if err != nil {
@@ -156,6 +158,10 @@ func Test_StreamingServerClient(t *testing.T) {
 	if testing.Short() {
 		return
 	}
+	
+	ncpu := runtime.NumCPU()
+	runtime.GOMAXPROCS(ncpu + 1)
+	
 	fmt.Println("Test_StreamingServerClient")
 	sam, err := NewSAM(yoursam)
 	if err != nil {
@@ -217,9 +223,16 @@ func Test_StreamingServerClient(t *testing.T) {
 		w <- false
 		return
 	}
+	defer l.Close()
 	w <- true
 	fmt.Println("\tServer: Accept()ing on tunnel")
 	conn, err := l.Accept()
+	if err != nil {
+		t.Fail()
+		fmt.Println("Failed to Accept(): " + err.Error())
+		return
+	}
+	defer conn.Close()
 	buf := make([]byte, 512)
 	n,err := conn.Read(buf)
 	fmt.Printf("\tClient exited successfully: %t\n", <-c)
@@ -227,4 +240,85 @@ func Test_StreamingServerClient(t *testing.T) {
 }
 
 
+
+func Test_DatagramServerClient(t *testing.T) {
+//	if testing.Short() {
+//		return
+//	}
+
+	ncpu := runtime.NumCPU()
+	runtime.GOMAXPROCS(ncpu + 1)
+
+	fmt.Println("Test_DatagramServerClient")
+	sam, err := NewSAM(yoursam)
+	if err != nil {
+		t.Fail()
+		return
+	}
+	defer sam.Close()
+	keys, err := sam.NewKeys()
+	if err != nil {
+		t.Fail()
+		return
+	}
+//	fmt.Println("\tServer: My address: " + keys.Addr().Base32())
+	fmt.Println("\tServer: Creating tunnel")
+	ds, err := sam.NewDatagramSession("DGserverTun", keys, []string{"inbound.length=0", "outbound.length=0", "inbound.lengthVariance=0", "outbound.lengthVariance=0", "inbound.quantity=1", "outbound.quantity=1"}, 0)
+	if err != nil {
+		fmt.Println("Server: Failed to create tunnel: " + err.Error())
+		t.Fail()
+		return
+	}
+	c, w := make(chan bool), make(chan bool)
+	go func(c, w chan(bool)) { 
+		sam2, err := NewSAM(yoursam)
+		if err != nil {
+			c <- false
+			return
+		}
+		defer sam2.Close()
+		keys, err := sam2.NewKeys()
+		if err != nil {
+			c <- false
+			return
+		}
+		fmt.Println("\tClient: Creating tunnel")
+		ds2, err := sam2.NewDatagramSession("DGclientTun", keys, []string{"inbound.length=0", "outbound.length=0", "inbound.lengthVariance=0", "outbound.lengthVariance=0", "inbound.quantity=1", "outbound.quantity=1"}, 0)
+		if err != nil {
+			c <- false
+			return
+		}
+		defer ds2.Close()
+//		fmt.Println("\tClient: Servers address: " + ds.LocalAddr().Base32())
+//		fmt.Println("\tClient: Clients address: " + ds2.LocalAddr().Base32())
+		fmt.Println("\tClient: Tries to send datagram to server")
+		for {
+			select {
+				default :
+					_, err = ds2.WriteTo([]byte("Hello datagram-world! <3 <3 <3 <3 <3 <3"), ds.LocalAddr())
+					if err != nil {
+						fmt.Println("\tClient: Failed to send datagram: " + err.Error())
+						c <- false
+						return
+					}
+					time.Sleep(5 * time.Second)
+				case <-w :
+					fmt.Println("\tClient: Sent datagram, quitting.")
+					return
+			}
+		}
+		c <- true
+	}(c, w)
+	buf := make([]byte, 512)
+	fmt.Println("\tServer: ReadFrom() waiting...")
+	n, _, err := ds.ReadFrom(buf)
+	w <- true
+	if err != nil {
+		fmt.Println("\tServer: Failed to ReadFrom(): " + err.Error())
+		t.Fail()
+		return
+	}
+	fmt.Println("\tServer: Received datagram: " + string(buf[:n]))
+//	fmt.Println("\tServer: Senders address was: " + saddr.Base32())
+}
 

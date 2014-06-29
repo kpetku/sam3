@@ -7,7 +7,6 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // Represents a streaming session.
@@ -16,9 +15,6 @@ type StreamSession struct {
 	id          string             // tunnel name
 	conn        net.Conn           // connection to sam bridge
 	keys        I2PKeys            // i2p destination keys
- 	listener    *StreamListener    // used for accepting inbound calls
-	l           sync.Mutex         // lock for this struct
-	err         error
 }
 
 // Returns the local tunnel name of the I2P tunnel used for the stream session
@@ -39,11 +35,11 @@ func (ss StreamSession) Keys() I2PKeys {
 // Creates a new StreamSession with the I2CP- and streaminglib options as 
 // specified. See the I2P documentation for a full list of options.
 func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*StreamSession, error) {
-	conn, err := sam.newGenericSession("STREAM", id, keys, options)
+	conn, err := sam.newGenericSession("STREAM", id, keys, options, []string{})
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, nil, sync.Mutex{}, nil}, nil
+	return &StreamSession{sam.address, id, conn, keys}, nil
 }
 
 // Dials to an I2P destination and returns a SAMConn, which implements a net.Conn.
@@ -96,7 +92,12 @@ func (s *StreamSession) Listen() (*StreamListener, error) {
 	if err != nil {
 		return nil, err
 	}
-	listener, err := net.Listen("tcp4", ":0")
+	lhost, _, err := net.SplitHostPort(s.conn.LocalAddr().String())
+	if err != nil {
+		sam.Close()
+		return nil, err
+	}
+	listener, err := net.Listen("tcp4", lhost + ":0")
 	_, lport, err := net.SplitHostPort(listener.Addr().String())
 	if err != nil {
 		sam.Close()
