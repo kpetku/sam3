@@ -16,9 +16,9 @@ type DatagramSession struct {
     samAddr     string             // address to the sam bridge (ipv4:port)
 	id          string             // tunnel name
 	conn        net.Conn           // connection to sam bridge
-	udpconn     *net.UDPConn        // used to deliver datagrams
+	udpconn     *net.UDPConn       // used to deliver datagrams
 	keys        I2PKeys            // i2p destination keys
-	rUDPAddr    *net.UDPAddr        // the SAM bridge UDP-port
+	rUDPAddr    *net.UDPAddr       // the SAM bridge UDP-port
 }
 
 // Creates a new datagram session. udpPort is the UDP port SAM is listening on, 
@@ -66,9 +66,17 @@ func (s *DatagramSession) ReadFrom(b []byte) (n int, addr I2PAddr, err error) {
 	// extra bytes to read the remote address of incomming datagram
 	buf := make([]byte, len(b) + 4096)
 	
-	n, _, err = s.udpconn.ReadFrom(buf)
-	if err != nil {
-		return 0, I2PAddr(""), err
+	for {
+		// very basic protection: only accept incomming UDP messages from the IP of the SAM bridge
+		var saddr *net.UDPAddr
+		n, saddr, err = s.udpconn.ReadFromUDP(buf)
+		if err != nil {
+			return 0, I2PAddr(""), err
+		}
+		if bytes.Equal(saddr.IP, s.rUDPAddr.IP) {
+			continue
+		}
+		break
 	}
 	i := bytes.IndexByte(buf, byte('\n'))
 	if i > 4096 || i > n {
@@ -79,12 +87,13 @@ func (s *DatagramSession) ReadFrom(b []byte) (n int, addr I2PAddr, err error) {
 		return 0, I2PAddr(""), errors.New("Could not parse incomming message remote address: " + err.Error())
 	}
 	// shift out the incomming address to contain only the data received
-	copy(b, buf[i+1:i+1+len(b)])
-
 	if ( n - i+1 ) > len(b) {
+		copy(b, buf[i+1:i+1+len(b)])
 		return n-(i+1), raddr, errors.New("Datagram did not fit into your buffer.")
+	} else {
+		copy(b, buf[i+1:n])
+		return n-(i+1), raddr, nil
 	}
-	return n-(i+1), raddr, nil
 }
 
 // Sends one signed datagram to the destination specified. At the time of 
