@@ -1,6 +1,6 @@
 # README #
 
-go library for the I2P SAMv3 bridge, used to build anonymous/pseudonymous end-to-end encrypted sockets.
+go library for the I2P ([SAM version 3.0](https://geti2p.net/en/docs/api/samv3)) bridge, used to build anonymous/pseudonymous end-to-end encrypted sockets.
 
 This library is much better than ccondom (that use BOB), much more stable and much easier to maintain.
 
@@ -28,8 +28,12 @@ This library is much better than ccondom (that use BOB), much more stable and mu
 
 ## Documentation ##
 
-* Enter `godoc -http=:8081` into your terminal and hit enter.
-* Goto http://localhost:8081, click packages, and navigate to sam3
+* ([Online cached version](http://godoc.org/bitbucket.org/kallevedin/sam3))
+
+* Latest version-documentation:
+    * set your GOPATH
+    * Enter `godoc -http=:8081` into your terminal and hit enter.
+    * Goto http://localhost:8081, click packages, and navigate to sam3
 
 ## Examples ##
 ```go

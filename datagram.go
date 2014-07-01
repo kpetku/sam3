@@ -9,7 +9,7 @@ import (
 )
 
 // The DatagramSession implements net.PacketConn. It works almost like ordinary
-// UDP, except that datagrams may be much larger (max 31kB). These datagrams are
+// UDP, except that datagrams may be at most 31kB large. These datagrams are
 // also end-to-end encrypted, signed and includes replay-protection. And they 
 // are also built to be surveillance-resistant (yey!).
 type DatagramSession struct {
@@ -121,17 +121,19 @@ func (s *DatagramSession) LocalAddr() I2PAddr {
 	return s.keys.Addr()
 }
 
-// Implements net.PacketConn
+// Sets read and write deadlines for the DatagramSession. Implements 
+// net.PacketConn and does the same thing. Setting write deadlines for datagrams
+// is seldom done.
 func (s *DatagramSession) SetDeadline(t time.Time) error {
 	return s.udpconn.SetDeadline(t)
 }
 
-// Implements net.PacketConn
+// Sets read deadline for the DatagramSession. Implements net.PacketConn
 func (s *DatagramSession) SetReadDeadline(t time.Time) error {
 	return s.udpconn.SetReadDeadline(t)
 }
 
-// Implements net.PacketConn
+// Sets the write deadline for the DatagramSession. Implements net.Packetconn.
 func (s *DatagramSession) SetWriteDeadline(t time.Time) error {
 	return s.udpconn.SetWriteDeadline(t)
 }
