@@ -104,7 +104,8 @@ func (addr I2PAddr) ToBytes() ([]byte, error) {
 // which the b32 address was generated.
 func (addr I2PAddr) Base32() string {
 	hash := sha256.New()
-	hash.Write(addr.ToBytes())
+  b, _ := self.ToBytes()
+	hash.Write(b)
 	digest := hash.Sum(nil)
 	b32addr := make([]byte, 56)
 	i2pB32enc.Encode(b32addr, digest)
