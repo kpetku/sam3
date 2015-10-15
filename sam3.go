@@ -114,7 +114,7 @@ func (sam *SAM) Lookup(name string) (I2PAddr, error) {
 		} else if strings.HasPrefix(text, "MESSAGE=") {
 			errStr += " " + text[8:]
 		} else {
-			return I2PAddr(""), errors.New("Failed to parse lookup reply.")
+      continue
 		}
 	}
 	return I2PAddr(""), errors.New(errStr)
