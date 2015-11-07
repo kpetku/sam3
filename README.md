@@ -87,6 +87,7 @@ Error handling was omitted in the above code for readability.
 
 Public domain.
 
-## Author ##
+## Authors ##
 
-Kalle Vedin `kalle.vedin@fripost.org`
+* Kalle Vedin `kalle.vedin@fripost.org`
+* Unknown Name (majestrate)
