@@ -4,22 +4,26 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"io"
 	"net"
-	"strconv"
 	"strings"
 )
 
 // Represents a streaming session.
 type StreamSession struct {
-    samAddr     string             // address to the sam bridge (ipv4:port)
-	id          string             // tunnel name
-	conn        net.Conn           // connection to sam bridge
-	keys        I2PKeys            // i2p destination keys
+	samAddr string   // address to the sam bridge (ipv4:port)
+	id      string   // tunnel name
+	conn    net.Conn // connection to sam
+	keys    I2PKeys  // i2p destination keys
 }
 
 // Returns the local tunnel name of the I2P tunnel used for the stream session
 func (ss StreamSession) ID() string {
 	return ss.id
+}
+
+func (ss *StreamSession) Close() error {
+	return ss.conn.Close()
 }
 
 // Returns the I2P destination (the address) of the stream session
@@ -32,7 +36,7 @@ func (ss StreamSession) Keys() I2PKeys {
 	return ss.keys
 }
 
-// Creates a new StreamSession with the I2CP- and streaminglib options as 
+// Creates a new StreamSession with the I2CP- and streaminglib options as
 // specified. See the I2P documentation for a full list of options.
 func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*StreamSession, error) {
 	conn, err := sam.newGenericSession("STREAM", id, keys, options, []string{})
@@ -42,6 +46,39 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 	return &StreamSession{sam.address, id, conn, keys}, nil
 }
 
+// lookup name, convienence function
+func (s *StreamSession) Lookup(name string) (I2PAddr, error) {
+	sam, err := NewSAM(s.samAddr)
+	if err == nil {
+		addr, err := sam.Lookup(name)
+		sam.Close()
+		return addr, err
+	}
+	return I2PAddr(""), err
+}
+
+// implement net.Dialer
+func (s *StreamSession) Dial(n, addr string) (c net.Conn, err error) {
+
+	var i2paddr I2PAddr
+	var host string
+	host, _, err = net.SplitHostPort(addr)
+	if err == nil {
+		// check for name
+		if strings.HasSuffix(host, ".b32.i2p") || strings.HasSuffix(host, ".i2p") {
+			// name lookup
+			i2paddr, err = s.Lookup(host)
+		} else {
+			// probably a destination
+			i2paddr = I2PAddr(host)
+		}
+		if err == nil {
+			return s.DialI2P(i2paddr)
+		}
+	}
+	return
+}
+
 // Dials to an I2P destination and returns a SAMConn, which implements a net.Conn.
 func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
 	sam, err := NewSAM(s.samAddr)
@@ -49,152 +86,120 @@ func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
 		return nil, err
 	}
 	conn := sam.conn
-	_,err = conn.Write([]byte("STREAM CONNECT ID=" + s.id + " DESTINATION=" + addr.Base64() + " SILENT=false\n"))
+	_, err = conn.Write([]byte("STREAM CONNECT ID=" + s.id + " DESTINATION=" + addr.Base64() + " SILENT=false\n"))
 	if err != nil {
+		conn.Close()
 		return nil, err
 	}
 	buf := make([]byte, 4096)
 	n, err := conn.Read(buf)
-	if err != nil {
+	if err != nil && err != io.EOF {
+		conn.Close()
 		return nil, err
 	}
 	scanner := bufio.NewScanner(bytes.NewReader(buf[:n]))
 	scanner.Split(bufio.ScanWords)
 	for scanner.Scan() {
 		switch scanner.Text() {
-		case "STREAM" :
+		case "STREAM":
 			continue
-		case "STATUS" :
+		case "STATUS":
 			continue
-		case "RESULT=OK" :
+		case "RESULT=OK":
 			return &SAMConn{s.keys.addr, addr, conn}, nil
-		case "RESULT=CANT_REACH_PEER" :
+		case "RESULT=CANT_REACH_PEER":
+			conn.Close()
 			return nil, errors.New("Can not reach peer")
-		case "RESULT=I2P_ERROR" :
+		case "RESULT=I2P_ERROR":
+			conn.Close()
 			return nil, errors.New("I2P internal error")
-		case "RESULT=INVALID_KEY" :
+		case "RESULT=INVALID_KEY":
+			conn.Close()
 			return nil, errors.New("Invalid key")
-		case "RESULT=INVALID_ID" :
+		case "RESULT=INVALID_ID":
+			conn.Close()
 			return nil, errors.New("Invalid tunnel ID")
-		case "RESULT=TIMEOUT" :
+		case "RESULT=TIMEOUT":
+			conn.Close()
 			return nil, errors.New("Timeout")
-		default :
+		default:
+			conn.Close()
 			return nil, errors.New("Unknown error: " + scanner.Text() + " : " + string(buf[:n]))
 		}
 	}
 	panic("sam3 go library error in StreamSession.DialI2P()")
 }
 
-// Returns a listener for the I2P destination (I2PAddr) associated with the
-// StreamSession.
+// create a new stream listener to accept inbound connections
 func (s *StreamSession) Listen() (*StreamListener, error) {
-	sam, err := NewSAM(s.conn.RemoteAddr().String())
-	if err != nil {
-		return nil, err
-	}
-	lhost, _, err := net.SplitHostPort(s.conn.LocalAddr().String())
-	if err != nil {
-		sam.Close()
-		return nil, err
-	}
-	listener, err := net.Listen("tcp4", lhost + ":0")
-	_, lport, err := net.SplitHostPort(listener.Addr().String())
-	if err != nil {
-		sam.Close()
-		return nil, err
-	}
-	conn := sam.conn
-	_, err = conn.Write([]byte("STREAM FORWARD ID=" + s.id + " PORT=" + lport + " SILENT=false\n"))
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-	buf := make([]byte, 512)
-	n, err := conn.Read(buf)
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-	scanner := bufio.NewScanner(bytes.NewReader(buf[:n]))
-	scanner.Split(bufio.ScanWords)
-	for scanner.Scan() {
-		switch strings.TrimSpace(scanner.Text()) {
-		case "STREAM" :
-			continue
-		case "STATUS" :
-			continue
-		case "RESULT=OK" :
-			port,_ := strconv.Atoi(lport)
-			return &StreamListener{conn, listener, port, s.keys.Addr()}, nil
-		case "RESULT=I2P_ERROR" :
-			conn.Close()
-			return nil, errors.New("I2P internal error")
-		case "RESULT=INVALID_ID" :
-			conn.Close()
-			return nil, errors.New("Invalid tunnel ID")
-		default :
-			conn.Close()
-			return nil, errors.New("Unknown error: " + scanner.Text() + " : " + string(buf[:n]))
-		}
-	}
-	panic("sam3 go library error in StreamSession.Listener()")
+	return &StreamListener{
+		session: s,
+		id:      s.id,
+		laddr:   s.keys.Addr(),
+	}, nil
 }
 
-// Implements net.Listener for I2P streaming sessions
 type StreamListener struct {
-	conn        net.Conn
-	listener    net.Listener
-	lport       int
-	laddr       I2PAddr
+	// parent stream session
+	session *StreamSession
+	// our session id
+	id string
+	// our local address for this sam socket
+	laddr I2PAddr
 }
 
-const defaultListenReadLen = 516
-
-// Accepts incomming connections to your StreamSession tunnel. Implements net.Listener
-func (l *StreamListener) Accept() (*SAMConn, error) {
-	conn, err := l.listener.Accept()
-	if err != nil {
-		return nil, err
-	}
-	buf := make([]byte, defaultListenReadLen)
-	n, err := conn.Read(buf)
-	if n < defaultListenReadLen {
-		return nil, errors.New("Unknown destination type: " + string(buf[:n]))
-	}
-	// I2P inserts the I2P address ("destination") of the connecting peer into the datastream, followed by
-	// a \n. Since the length of a destination may vary, this reads until a newline is found. At the time
-	// of writing, the length is never less then, and almost always equals 516 bytes, which is why 
-	// defaultListenReadLen is 516.
-	if rune(buf[defaultListenReadLen - 1]) != '\n' {
-		abuf := make([]byte, 1)
-		for {
-			n, err := conn.Read(abuf)
-			if n != 1 || err != nil {
-				return nil, errors.New("Failed to decode connecting peers I2P destination.")
-			}
-			buf = append(buf, abuf[0])
-			if rune(abuf[0]) == '\n' { break }
-		}
-	}
-	rAddr, err := NewI2PAddrFromString(string(buf[:len(buf)-1])) // the address minus the trailing newline
-	if err != nil {
-		conn.Close()
-		return nil, errors.New("Could not determine connecting tunnels address.")
-	}
-	return &SAMConn{l.laddr, rAddr, conn}, nil
-}
-
-// Closes the stream session. Implements net.Listener
-func (l *StreamListener) Close() error {
-	err := l.listener.Close()
-	err2 := l.conn.Close()
-	if err2 != nil {
-		return err2
-	}
-	return err
-}
-
-// Returns the I2P destination (address) of the stream session. Implements net.Listener
+// get our address
+// implements net.Listener
 func (l *StreamListener) Addr() net.Addr {
 	return l.laddr
+}
+
+// implements net.Listener
+func (l *StreamListener) Close() error {
+	return l.session.Close()
+}
+
+// implements net.Listener
+func (l *StreamListener) Accept() (net.Conn, error) {
+	return l.AcceptI2P()
+}
+
+// accept a new inbound connection
+func (l *StreamListener) AcceptI2P() (*SAMConn, error) {
+	s, err := NewSAM(l.session.samAddr)
+	if err == nil {
+		// we connected to sam
+		// send accept() command
+		_, err = io.WriteString(s.conn, "STREAM ACCEPT ID="+l.id+" SILENT=false\n")
+		// read reply
+		rd := bufio.NewReader(s.conn)
+		// read first line
+		line, err := rd.ReadString(10)
+		if err == nil {
+			if strings.HasPrefix(line, "STREAM STATUS RESULT=OK") {
+				// we gud read destination line
+				dest, err := rd.ReadString(10)
+				if err == nil {
+					// return wrapped connection
+					dest = strings.Trim(dest, "\n")
+					return &SAMConn{
+						laddr: l.laddr,
+						raddr: I2PAddr(dest),
+						conn:  s.conn,
+					}, nil
+				} else {
+					s.Close()
+					return nil, err
+				}
+			} else {
+				s.Close()
+				return nil, errors.New("invalid sam line: " + line)
+			}
+		} else {
+			s.Close()
+			return nil, err
+		}
+	}
+	s.Close()
+	return nil, err
 }
