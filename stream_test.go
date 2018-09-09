@@ -13,7 +13,7 @@ func Test_StreamingDial(t *testing.T) {
 	fmt.Println("Test_StreamingDial")
 	sam, err := NewSAM(yoursam)
 	if err != nil {
-		fmt.Println(err.Error)
+		fmt.Println(err.Error())
 		t.Fail()
 		return
 	}
