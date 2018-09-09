@@ -13,19 +13,19 @@ type SAMConn struct {
 }
 
 // Implements net.Conn
-func (sc *SAMConn) Read(buf []byte) (int, error) {
+func (sc SAMConn) Read(buf []byte) (int, error) {
 	n, err := sc.conn.Read(buf)
 	return n, err
 }
 
 // Implements net.Conn
-func (sc *SAMConn) Write(buf []byte) (int, error) {
+func (sc SAMConn) Write(buf []byte) (int, error) {
 	n, err := sc.conn.Write(buf)
 	return n, err
 }
 
 // Implements net.Conn
-func (sc *SAMConn) Close() error {
+func (sc SAMConn) Close() error {
 	return sc.conn.Close()
 }
 

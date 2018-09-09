@@ -121,7 +121,7 @@ func (s *DatagramSession) Close() error {
 	return err2
 }
 
-// Returns the I2P destination of the DatagramSession. 
+// Returns the I2P destination of the DatagramSession.
 func (s *DatagramSession) LocalI2PAddr() I2PAddr {
 	return s.keys.Addr()
 }
