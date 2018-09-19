@@ -116,7 +116,7 @@ func (a I2PAddr) String() string {
 }
 
 // Returns "I2P"
-func (a *I2PAddr) Network() string {
+func (a I2PAddr) Network() string {
 	return "I2P"
 }
 
