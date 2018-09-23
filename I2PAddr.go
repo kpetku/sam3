@@ -48,24 +48,6 @@ func StoreKeysIncompat(k I2PKeys, w io.Writer) (err error) {
 	return
 }
 
-// load keys from non standard format
-func CryptLoadKeysIncompat(r io.Reader) (k I2PKeys, err error) {
-	var buff bytes.Buffer
-	_, err = io.Copy(&buff, r)
-	if err == nil {
-		parts := strings.Split(buff.String(), "\n")
-		k = I2PKeys{I2PAddr(parts[0]), parts[1]}
-	}
-	return
-}
-
-// store keys in non standard format
-func CryptStoreKeysIncompat(k I2PKeys, w io.Writer) (err error) {
-    s := k.addr.Base64()+"\n"+k.both
-	_, err = io.WriteString(w, s)
-	return
-}
-
 // Returns the public keys of the I2PKeys.
 func (k I2PKeys) Addr() I2PAddr {
 	return k.addr
