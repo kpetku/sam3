@@ -145,7 +145,7 @@ func (addr I2PAddr) ToBytes() ([]byte, error) {
 
 // Turns an I2P address to a byte array. The inverse of NewI2PAddrFromBytes().
 func (addr I2PAddr) Bytes() ([]byte) {
-    b, _ addr.ToBytes()
+    b, _ := addr.ToBytes()
 	return b
 }
 
