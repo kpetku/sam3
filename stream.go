@@ -3,6 +3,7 @@ package sam3
 import (
 	"bufio"
 	"bytes"
+    "context"
 	"errors"
 	"io"
 	"net"
@@ -55,6 +56,11 @@ func (s *StreamSession) Lookup(name string) (I2PAddr, error) {
 		return addr, err
 	}
 	return I2PAddr(""), err
+}
+
+// context-aware dialer
+func (s *StreamSession) DialContext(ctx context.Context, n, addr string) (net.Conn, error) {
+    return nil, nil
 }
 
 // implement net.Dialer

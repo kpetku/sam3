@@ -143,6 +143,12 @@ func (addr I2PAddr) ToBytes() ([]byte, error) {
 	return buf, nil
 }
 
+// Turns an I2P address to a byte array. The inverse of NewI2PAddrFromBytes().
+func (addr I2PAddr) Bytes() ([]byte) {
+    b, _ addr.ToBytes()
+	return b
+}
+
 // Returns the *.b32.i2p address of the I2P address. It is supposed to be a
 // somewhat human-manageable 64 character long pseudo-domain name equivalent of
 // the 516+ characters long default base64-address (the I2PAddr format). It is
