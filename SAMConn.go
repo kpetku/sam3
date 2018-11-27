@@ -29,21 +29,21 @@ func (sc SAMConn) Close() error {
 	return sc.conn.Close()
 }
 
-func (sc *SAMConn) LocalAddr() net.Addr {
+func (sc SAMConn) LocalAddr() net.Addr {
 	return sc.localAddr()
 }
 
 // Implements net.Conn
-func (sc *SAMConn) localAddr() I2PAddr {
+func (sc SAMConn) localAddr() I2PAddr {
 	return sc.laddr
 }
 
-func (sc *SAMConn) RemoteAddr() net.Addr {
+func (sc SAMConn) RemoteAddr() net.Addr {
 	return sc.remoteAddr()
 }
 
 // Implements net.Conn
-func (sc *SAMConn) remoteAddr() I2PAddr {
+func (sc SAMConn) remoteAddr() I2PAddr {
 	return sc.raddr
 }
 
@@ -53,11 +53,11 @@ func (sc SAMConn) SetDeadline(t time.Time) error {
 }
 
 // Implements net.Conn
-func (sc *SAMConn) SetReadDeadline(t time.Time) error {
+func (sc SAMConn) SetReadDeadline(t time.Time) error {
 	return sc.conn.SetReadDeadline(t)
 }
 
 // Implements net.Conn
-func (sc *SAMConn) SetWriteDeadline(t time.Time) error {
+func (sc SAMConn) SetWriteDeadline(t time.Time) error {
 	return sc.conn.SetWriteDeadline(t)
 }
