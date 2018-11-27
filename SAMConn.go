@@ -48,7 +48,7 @@ func (sc *SAMConn) remoteAddr() I2PAddr {
 }
 
 // Implements net.Conn
-func (sc *SAMConn) SetDeadline(t time.Time) error {
+func (sc SAMConn) SetDeadline(t time.Time) error {
 	return sc.conn.SetDeadline(t)
 }
 
