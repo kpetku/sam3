@@ -63,6 +63,12 @@ func (s *StreamSession) DialContext(ctx context.Context, n, addr string) (net.Co
 	return s.Dial(n, addr)
 }
 
+// context-aware dialer, eventually...
+func (s *StreamSession) DialContextI2P(ctx context.Context, n, addr string) (SAMConn, error) {
+    x, err := s.Dial(n, addr)
+	return x.(SAMConn), err
+}
+
 // implement net.Dialer
 func (s *StreamSession) Dial(n, addr string) (c net.Conn, err error) {
 
