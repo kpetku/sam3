@@ -23,7 +23,7 @@ func (ss StreamSession) ID() string {
 	return ss.id
 }
 
-func (ss *StreamSession) Close() error {
+func (ss StreamSession) Close() error {
 	return ss.conn.Close()
 }
 
@@ -58,9 +58,9 @@ func (s *StreamSession) Lookup(name string) (I2PAddr, error) {
 	return I2PAddr(""), err
 }
 
-// context-aware dialer
+// context-aware dialer, eventually...
 func (s *StreamSession) DialContext(ctx context.Context, n, addr string) (net.Conn, error) {
-	return nil, nil
+	return s.Dial(n, addr)
 }
 
 // implement net.Dialer
