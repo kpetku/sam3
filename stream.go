@@ -8,14 +8,17 @@ import (
 	"io"
 	"net"
 	"strings"
+	"time"
 )
 
 // Represents a streaming session.
 type StreamSession struct {
-	samAddr string   // address to the sam bridge (ipv4:port)
-	id      string   // tunnel name
-	conn    net.Conn // connection to sam
-	keys    I2PKeys  // i2p destination keys
+	samAddr  string   // address to the sam bridge (ipv4:port)
+	id       string   // tunnel name
+	conn     net.Conn // connection to sam
+	keys     I2PKeys  // i2p destination keys
+	Timeout  time.Duration
+	Deadline time.Time
 }
 
 // Returns the local tunnel name of the I2P tunnel used for the stream session
@@ -44,7 +47,7 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys}, nil
+	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now()}, nil
 }
 
 // lookup name, convienence function
@@ -60,16 +63,60 @@ func (s *StreamSession) Lookup(name string) (I2PAddr, error) {
 
 // context-aware dialer, eventually...
 func (s *StreamSession) DialContext(ctx context.Context, n, addr string) (net.Conn, error) {
-	return s.Dial(n, addr)
+	return s.DialContextI2P(ctx, n, addr)
 }
 
 // context-aware dialer, eventually...
 func (s *StreamSession) DialContextI2P(ctx context.Context, n, addr string) (*SAMConn, error) {
+	if ctx == nil {
+		panic("nil context")
+	}
+	deadline := s.deadline(ctx, time.Now())
+	if !deadline.IsZero() {
+		if d, ok := ctx.Deadline(); !ok || deadline.Before(d) {
+			subCtx, cancel := context.WithDeadline(ctx, deadline)
+			defer cancel()
+			ctx = subCtx
+		}
+	}
+
 	i2paddr, err := NewI2PAddrFromString(addr)
 	if err != nil {
 		return nil, err
 	}
 	return s.DialI2P(i2paddr)
+}
+
+/*
+func (s *StreamSession) Cancel() chan *StreamSession {
+	ch := make(chan *StreamSession)
+	ch <- s
+	return ch
+}*/
+
+func minNonzeroTime(a, b time.Time) time.Time {
+	if a.IsZero() {
+		return b
+	}
+	if b.IsZero() || a.Before(b) {
+		return a
+	}
+	return b
+}
+
+// deadline returns the earliest of:
+//   - now+Timeout
+//   - d.Deadline
+//   - the context's deadline
+// Or zero, if none of Timeout, Deadline, or context's deadline is set.
+func (s *StreamSession) deadline(ctx context.Context, now time.Time) (earliest time.Time) {
+	if s.Timeout != 0 { // including negative, for historical reasons
+		earliest = now.Add(s.Timeout)
+	}
+	if d, ok := ctx.Deadline(); ok {
+		earliest = minNonzeroTime(earliest, d)
+	}
+	return minNonzeroTime(earliest, s.Deadline)
 }
 
 // implement net.Dialer
