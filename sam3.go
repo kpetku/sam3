@@ -13,9 +13,10 @@ import (
 
 // Used for controlling I2Ps SAMv3.
 type SAM struct {
-	address string
-	conn    net.Conn
-	keys    *I2PKeys
+	address  string
+	conn     net.Conn
+	resolver *SAMResolver
+	keys     *I2PKeys
 }
 
 const (
@@ -28,6 +29,7 @@ const (
 
 // Creates a new controller for the I2P routers SAM bridge.
 func NewSAM(address string) (*SAM, error) {
+	var s SAM
 	// TODO: clean this up
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
@@ -44,7 +46,15 @@ func NewSAM(address string) (*SAM, error) {
 		return nil, err
 	}
 	if string(buf[:n]) == "HELLO REPLY RESULT=OK VERSION=3.0\n" {
-		return &SAM{address, conn, nil}, nil
+		s.address = address
+		s.conn = conn
+		s.keys = nil
+		s.resolver, err = NewSAMResolver(&s)
+		if err != nil {
+			return nil, err
+		}
+		return &s, nil
+		//return &SAM{address, conn, nil, nil}, nil
 	} else if string(buf[:n]) == "HELLO REPLY RESULT=NOVERSION\n" {
 		conn.Close()
 		return nil, errors.New("That SAM bridge does not support SAMv3.")
@@ -145,42 +155,7 @@ func (sam *SAM) NewKeys() (I2PKeys, error) {
 // Performs a lookup, probably this order: 1) routers known addresses, cached
 // addresses, 3) by asking peers in the I2P network.
 func (sam *SAM) Lookup(name string) (I2PAddr, error) {
-	if _, err := sam.conn.Write([]byte("NAMING LOOKUP NAME=" + name + "\n")); err != nil {
-		sam.Close()
-		return I2PAddr(""), err
-	}
-	buf := make([]byte, 4096)
-	n, err := sam.conn.Read(buf)
-	if err != nil {
-		sam.Close()
-		return I2PAddr(""), err
-	}
-	if n <= 13 || !strings.HasPrefix(string(buf[:n]), "NAMING REPLY ") {
-		return I2PAddr(""), errors.New("Failed to parse.")
-	}
-	s := bufio.NewScanner(bytes.NewReader(buf[13:n]))
-	s.Split(bufio.ScanWords)
-
-	errStr := ""
-	for s.Scan() {
-		text := s.Text()
-		if text == "RESULT=OK" {
-			continue
-		} else if text == "RESULT=INVALID_KEY" {
-			errStr += "Invalid key."
-		} else if text == "RESULT=KEY_NOT_FOUND" {
-			errStr += "Unable to resolve " + name
-		} else if text == "NAME="+name {
-			continue
-		} else if strings.HasPrefix(text, "VALUE=") {
-			return I2PAddr(text[6:]), nil
-		} else if strings.HasPrefix(text, "MESSAGE=") {
-			errStr += " " + text[8:]
-		} else {
-			continue
-		}
-	}
-	return I2PAddr(""), errors.New(errStr)
+	return sam.resolver.Resolve(name)
 }
 
 // Creates a new session with the style of either "STREAM", "DATAGRAM" or "RAW",
