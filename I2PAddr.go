@@ -129,7 +129,8 @@ func FiveHundredAs() I2PAddr {
 	for x := 0; x < 517; x++ {
 		s += "A"
 	}
-	NewI2PAddrFromString(s)
+	r, _ := NewI2PAddrFromString(s)
+    return r
 }
 
 // Creates a new I2P address from a byte array. The inverse of ToBytes().
