@@ -17,6 +17,16 @@ func NewSAMResolver(parent *SAM) (*SAMResolver, error) {
 	return &s, nil
 }
 
+func NewFullSAMResolver(address string) (*SAMResolver, error) {
+	var s SAMResolver
+	var err error
+	s.SAM, err = NewSAM(address)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 // Performs a lookup, probably this order: 1) routers known addresses, cached
 // addresses, 3) by asking peers in the I2P network.
 func (sam *SAMResolver) Resolve(name string) (I2PAddr, error) {
