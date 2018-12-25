@@ -124,6 +124,14 @@ func NewI2PAddrFromString(addr string) (I2PAddr, error) {
 	return I2PAddr(addr), nil
 }
 
+func FiveHundredAs() I2PAddr {
+	s := ""
+	for x := 0; x < 517; x++ {
+		s += "A"
+	}
+	NewI2PAddrFromString(s)
+}
+
 // Creates a new I2P address from a byte array. The inverse of ToBytes().
 func NewI2PAddrFromBytes(addr []byte) (I2PAddr, error) {
 	if len(addr) > 4096 || len(addr) < 384 {
