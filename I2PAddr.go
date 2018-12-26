@@ -87,6 +87,11 @@ func (h I2PDestHash) String() string {
 	return string(b32addr[:52]) + ".b32.i2p"
 }
 
+// Returns "I2P"
+func (h I2PDestHash) Network() string {
+	return "I2P"
+}
+
 // Returns the base64 representation of the I2PAddr
 func (a I2PAddr) Base64() string {
 	return string(a)
