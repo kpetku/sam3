@@ -81,7 +81,7 @@ func DestHashFromString(str string) (dhash I2PDestHash, err error) {
 }
 
 // get string representation of i2p dest hash
-func (h *I2PDestHash) String() string {
+func (h I2PDestHash) String() string {
 	b32addr := make([]byte, 56)
 	i2pB32enc.Encode(b32addr, h[:])
 	return string(b32addr[:52]) + ".b32.i2p"
@@ -172,7 +172,7 @@ func (addr I2PAddr) Base32() (str string) {
 	return addr.DestHash().String()
 }
 
-func (addr I2PAddr) DestHash() (h *I2PDestHash) {
+func (addr I2PAddr) DestHash() (h I2PDestHash) {
 	hash := sha256.New()
 	b, _ := addr.ToBytes()
 	hash.Write(b)
