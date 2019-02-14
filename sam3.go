@@ -17,6 +17,7 @@ type SAM struct {
 	conn     net.Conn
 	resolver *SAMResolver
 	keys     *I2PKeys
+	sigType  int
 }
 
 const (
@@ -27,6 +28,15 @@ const (
 	session_I2P_ERROR      = "SESSION STATUS RESULT=I2P_ERROR MESSAGE="
 )
 
+var SIG_TYPES = []string{
+	"",
+	"SIGNATURE_TYPE=DSA_SHA1",
+	"SIGNATURE_TYPE=ECDSA_SHA256_P256",
+	"SIGNATURE_TYPE=ECDSA_SHA384_P384",
+	"SIGNATURE_TYPE=ECDSA_SHA512_P521",
+	"SIGNATURE_TYPE=EdDSA_SHA512_Ed25519",
+}
+
 // Creates a new controller for the I2P routers SAM bridge.
 func NewSAM(address string) (*SAM, error) {
 	var s SAM
@@ -35,7 +45,7 @@ func NewSAM(address string) (*SAM, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := conn.Write([]byte("HELLO VERSION MIN=3.0 MAX=3.0\n")); err != nil {
+	if _, err := conn.Write([]byte("HELLO VERSION MIN=3.0 MAX=3.1\n")); err != nil {
 		conn.Close()
 		return nil, err
 	}
@@ -45,7 +55,7 @@ func NewSAM(address string) (*SAM, error) {
 		conn.Close()
 		return nil, err
 	}
-	if string(buf[:n]) == "HELLO REPLY RESULT=OK VERSION=3.0\n" {
+	if strings.Contains(string(buf[:n]), "HELLO REPLY RESULT=OK") {
 		s.address = address
 		s.conn = conn
 		s.keys = nil
@@ -122,8 +132,12 @@ func (sam *SAM) EnsureKeyfile(fname string) (keys I2PKeys, err error) {
 // Creates the I2P-equivalent of an IP address, that is unique and only the one
 // who has the private keys can send messages from. The public keys are the I2P
 // desination (the address) that anyone can send messages to.
-func (sam *SAM) NewKeys() (I2PKeys, error) {
-	if _, err := sam.conn.Write([]byte("DEST GENERATE\n")); err != nil {
+func (sam *SAM) NewKeys(sigType ...int) (I2PKeys, error) {
+	sigtmp := 0
+	if len(sigType) > 0 {
+		sigtmp = sigType[0]
+	}
+	if _, err := sam.conn.Write([]byte("DEST GENERATE" + SIG_TYPES[sigtmp] + "\n")); err != nil {
 		return I2PKeys{}, err
 	}
 	buf := make([]byte, 8192)
@@ -164,6 +178,15 @@ func (sam *SAM) Lookup(name string) (I2PAddr, error) {
 // setting extra to something else than []string{}.
 // This sam3 instance is now a session
 func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []string, extras []string) (net.Conn, error) {
+	return sam.newGenericSessionWithSignature(style, id, keys, 0, options, extras)
+}
+
+// Creates a new session with the style of either "STREAM", "DATAGRAM" or "RAW",
+// for a new I2P tunnel with name id, using the cypher keys specified, with the
+// I2CP/streaminglib-options as specified. Extra arguments can be specified by
+// setting extra to something else than []string{}.
+// This sam3 instance is now a session
+func (sam *SAM) newGenericSessionWithSignature(style, id string, keys I2PKeys, sigType int, options []string, extras []string) (net.Conn, error) {
 
 	optStr := ""
 	for _, opt := range options {
@@ -171,7 +194,7 @@ func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []stri
 	}
 
 	conn := sam.conn
-	scmsg := []byte("SESSION CREATE STYLE=" + style + " ID=" + id + " DESTINATION=" + keys.String() + " " + optStr + strings.Join(extras, " ") + "\n")
+	scmsg := []byte("SESSION CREATE STYLE=" + style + " ID=" + id + " DESTINATION=" + keys.String() + " " + SIG_TYPES[sigType] + " " + optStr + strings.Join(extras, " ") + "\n")
 	for m, i := 0, 0; m != len(scmsg); i++ {
 		if i == 15 {
 			conn.Close()
