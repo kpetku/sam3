@@ -1,3 +1,5 @@
+// +build nettest
+
 package sam3
 
 import (
