@@ -19,11 +19,11 @@ type StreamSession struct {
 	keys     I2PKeys  // i2p destination keys
 	Timeout  time.Duration
 	Deadline time.Time
-	sigType  int
+	sigType  string
 }
 
 func (ss *StreamSession) SignatureType() string {
-	return SIG_TYPES[ss.sigType]
+	return ss.sigType
 }
 
 // Returns the local tunnel name of the I2P tunnel used for the stream session
@@ -52,12 +52,12 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), 0}, nil
+	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sig_NONE}, nil
 }
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
 // specified. See the I2P documentation for a full list of options.
-func (sam *SAM) NewStreamSessionWithSignature(id string, keys I2PKeys, options []string, sigType int) (*StreamSession, error) {
+func (sam *SAM) NewStreamSessionWithSignature(id string, keys I2PKeys, options []string, sigType string) (*StreamSession, error) {
 	conn, err := sam.newGenericSessionWithSignature("STREAM", id, keys, sigType, options, []string{})
 	if err != nil {
 		return nil, err
