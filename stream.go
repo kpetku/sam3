@@ -245,6 +245,14 @@ type StreamListener struct {
 	laddr I2PAddr
 }
 
+func (l *StreamListener) From() string {
+	return l.session.from
+}
+
+func (l *StreamListener) To() string {
+	return l.session.to
+}
+
 // get our address
 // implements net.Listener
 func (l *StreamListener) Addr() net.Addr {
