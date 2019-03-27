@@ -178,7 +178,7 @@ func (sam *SAM) Lookup(name string) (I2PAddr, error) {
 // setting extra to something else than []string{}.
 // This sam3 instance is now a session
 func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []string, extras []string) (net.Conn, error) {
-	return sam.newGenericSessionWithSignature(style, id, keys, sig_NONE, options, extras)
+	return sam.newGenericSessionWithSignature(style, id, keys, Sig_NONE, options, extras)
 }
 
 func (sam *SAM) newGenericSessionWithSignature(style, id string, keys I2PKeys, sigType string, options []string, extras []string) (net.Conn, error) {
