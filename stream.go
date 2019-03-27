@@ -24,6 +24,14 @@ type StreamSession struct {
 	to       string
 }
 
+func (ss *StreamSession) From() string {
+	return ss.from
+}
+
+func (ss *StreamSession) To() string {
+	return ss.to
+}
+
 func (ss *StreamSession) SignatureType() string {
 	return ss.sigType
 }
