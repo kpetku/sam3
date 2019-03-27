@@ -20,6 +20,8 @@ type StreamSession struct {
 	Timeout  time.Duration
 	Deadline time.Time
 	sigType  string
+	from     string
+	to       string
 }
 
 func (ss *StreamSession) SignatureType() string {
@@ -52,7 +54,7 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sig_NONE}, nil
+	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sig_NONE, "0", "0"}, nil
 }
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
@@ -62,7 +64,17 @@ func (sam *SAM) NewStreamSessionWithSignature(id string, keys I2PKeys, options [
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType}, nil
+	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType, "0", "0"}, nil
+}
+
+// Creates a new StreamSession with the I2CP- and streaminglib options as
+// specified. See the I2P documentation for a full list of options.
+func (sam *SAM) NewStreamSessionWithSignatureAndPorts(id, from, to string, keys I2PKeys, options []string, sigType string) (*StreamSession, error) {
+	conn, err := sam.newGenericSessionWithSignatureAndPorts("STREAM", id, from, to, keys, sigType, options, []string{})
+	if err != nil {
+		return nil, err
+	}
+	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType, from, to}, nil
 }
 
 // lookup name, convienence function
@@ -163,7 +175,7 @@ func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
 		return nil, err
 	}
 	conn := sam.conn
-	_, err = conn.Write([]byte("STREAM CONNECT ID=" + s.id + " DESTINATION=" + addr.Base64() + " SILENT=false\n"))
+	_, err = conn.Write([]byte("STREAM CONNECT ID=" + s.id + " FROM_PORT=" + s.from + " TO_PORT=" + s.to + " DESTINATION=" + addr.Base64() + " SILENT=false\n"))
 	if err != nil {
 		conn.Close()
 		return nil, err

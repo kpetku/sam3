@@ -181,12 +181,16 @@ func (sam *SAM) newGenericSession(style, id string, keys I2PKeys, options []stri
 	return sam.newGenericSessionWithSignature(style, id, keys, sig_NONE, options, extras)
 }
 
+func (sam *SAM) newGenericSessionWithSignature(style, id string, keys I2PKeys, sigType string, options []string, extras []string) (net.Conn, error) {
+	return sam.newGenericSessionWithSignatureAndPorts(style, id, "0", "0", keys, sigType, options, extras)
+}
+
 // Creates a new session with the style of either "STREAM", "DATAGRAM" or "RAW",
 // for a new I2P tunnel with name id, using the cypher keys specified, with the
 // I2CP/streaminglib-options as specified. Extra arguments can be specified by
 // setting extra to something else than []string{}.
 // This sam3 instance is now a session
-func (sam *SAM) newGenericSessionWithSignature(style, id string, keys I2PKeys, sigType string, options []string, extras []string) (net.Conn, error) {
+func (sam *SAM) newGenericSessionWithSignatureAndPorts(style, id, from, to string, keys I2PKeys, sigType string, options []string, extras []string) (net.Conn, error) {
 
 	optStr := ""
 	for _, opt := range options {
@@ -194,7 +198,7 @@ func (sam *SAM) newGenericSessionWithSignature(style, id string, keys I2PKeys, s
 	}
 
 	conn := sam.conn
-	scmsg := []byte("SESSION CREATE STYLE=" + style + " ID=" + id + " DESTINATION=" + keys.String() + " " + sigType + " " + optStr + strings.Join(extras, " ") + "\n")
+	scmsg := []byte("SESSION CREATE STYLE=" + style + " FROM_PORT=" + from + " TO_PORT=" + to + " ID=" + id + " DESTINATION=" + keys.String() + " " + sigType + " " + optStr + strings.Join(extras, " ") + "\n")
 	for m, i := 0, 0; m != len(scmsg); i++ {
 		if i == 15 {
 			conn.Close()
