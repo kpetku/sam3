@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 func Test_StreamingDial(t *testing.T) {
 	if testing.Short() {
 		return

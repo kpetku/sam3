@@ -27,7 +27,7 @@ func Test_Basic(t *testing.T) {
 		t.Fail()
 	} else {
 		fmt.Println("\tAddress created: " + keys.Addr().Base32())
-		fmt.Println("\tI2PKeys: " + string(keys.both)[:50] + "(...etc)")
+		fmt.Println("\tI2PKeys: " + string(keys.String())[:50] + "(...etc)")
 	}
 
 	addr2, err := sam.Lookup("zzz.i2p")
