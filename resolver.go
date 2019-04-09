@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 type SAMResolver struct {
 	*SAM
 }

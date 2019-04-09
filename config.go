@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 // sam config
 
 // options map

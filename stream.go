@@ -6,9 +6,15 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log"
 	"net"
+	"strconv"
 	"strings"
 	"time"
+)
+
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
 )
 
 // Represents a streaming session.
@@ -203,7 +209,7 @@ func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
 		case "STATUS":
 			continue
 		case "RESULT=OK":
-			return &SAMConn{s.keys.addr, addr, conn}, nil
+			return &SAMConn{s.keys.Addr(), addr, conn}, nil
 		case "RESULT=CANT_REACH_PEER":
 			conn.Close()
 			return nil, errors.New("Can not reach peer")
@@ -269,6 +275,31 @@ func (l *StreamListener) Accept() (net.Conn, error) {
 	return l.AcceptI2P()
 }
 
+func ExtractPairString(input, value string) string {
+	parts := strings.Split(input, " ")
+	for _, part := range parts {
+		if strings.HasPrefix(part, value) {
+			kv := strings.SplitN(input, "=", 2)
+			if len(kv) == 2 {
+				return kv[1]
+			}
+		}
+	}
+	return ""
+}
+
+func ExtractPairInt(input, value string) int {
+	rv, err := strconv.Atoi(ExtractPairString(input, value))
+	if err != nil {
+		return 0
+	}
+	return rv
+}
+
+func ExtractDest(input string) string {
+	return strings.Split(input, " ")[0]
+}
+
 // accept a new inbound connection
 func (l *StreamListener) AcceptI2P() (*SAMConn, error) {
 	s, err := NewSAM(l.session.samAddr)
@@ -280,11 +311,16 @@ func (l *StreamListener) AcceptI2P() (*SAMConn, error) {
 		rd := bufio.NewReader(s.conn)
 		// read first line
 		line, err := rd.ReadString(10)
+		log.Println(line)
 		if err == nil {
 			if strings.HasPrefix(line, "STREAM STATUS RESULT=OK") {
 				// we gud read destination line
-				dest, err := rd.ReadString(10)
+				destline, err := rd.ReadString(10)
+				log.Println(destline)
 				if err == nil {
+					dest := ExtractDest(destline)
+					l.session.from = ExtractPairString(destline, "FROM_PORT")
+					l.session.to = ExtractPairString(destline, "TO_PORT")
 					// return wrapped connection
 					dest = strings.Trim(dest, "\n")
 					return &SAMConn{

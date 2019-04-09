@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 // Implements net.Conn
 type SAMConn struct {
 	laddr I2PAddr

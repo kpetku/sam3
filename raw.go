@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 // The RawSession provides no authentication of senders, and there is no sender
 // address attached to datagrams, so all communication is anonymous. The
 // messages send are however still endpoint-to-endpoint encrypted. You

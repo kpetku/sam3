@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+import (
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 // The DatagramSession implements net.PacketConn. It works almost like ordinary
 // UDP, except that datagrams may be at most 31kB large. These datagrams are
 // also end-to-end encrypted, signed and includes replay-protection. And they

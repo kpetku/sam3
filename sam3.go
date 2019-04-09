@@ -11,6 +11,11 @@ import (
 	"strings"
 )
 
+import (
+	. "github.com/eyedeekay/ramp/config"
+	. "github.com/eyedeekay/sam3/i2pkeys"
+)
+
 // Used for controlling I2Ps SAMv3.
 type SAM struct {
 	address  string
@@ -18,6 +23,7 @@ type SAM struct {
 	resolver *SAMResolver
 	keys     *I2PKeys
 	sigType  int
+	config   I2PConfig
 }
 
 const (
@@ -163,7 +169,7 @@ func (sam *SAM) NewKeys(sigType ...string) (I2PKeys, error) {
 			return I2PKeys{}, errors.New("Failed to parse keys.")
 		}
 	}
-	return I2PKeys{I2PAddr(pub), priv}, nil
+	return NewKeys(I2PAddr(pub), priv), nil
 }
 
 // Performs a lookup, probably this order: 1) routers known addresses, cached
