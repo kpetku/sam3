@@ -61,7 +61,7 @@ func (s *SAM) NewDatagramSession(id string, keys I2PKeys, options []string, udpP
 	if err != nil {
 		return nil, err
 	}
-	return &DatagramSession{s.address, id, conn, udpconn, keys, rUDPAddr}, nil
+	return &DatagramSession{s.Config.I2PConfig.Sam(), id, conn, udpconn, keys, rUDPAddr}, nil
 }
 
 func (s *DatagramSession) B32() string {

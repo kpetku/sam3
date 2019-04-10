@@ -68,7 +68,7 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), Sig_NONE, "0", "0"}, nil
+	return &StreamSession{sam.Config.I2PConfig.Sam(), id, conn, keys, time.Duration(600 * time.Second), time.Now(), Sig_NONE, "0", "0"}, nil
 }
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
@@ -78,7 +78,7 @@ func (sam *SAM) NewStreamSessionWithSignature(id string, keys I2PKeys, options [
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType, "0", "0"}, nil
+	return &StreamSession{sam.Config.I2PConfig.Sam(), id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType, "0", "0"}, nil
 }
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
@@ -88,7 +88,7 @@ func (sam *SAM) NewStreamSessionWithSignatureAndPorts(id, from, to string, keys 
 	if err != nil {
 		return nil, err
 	}
-	return &StreamSession{sam.address, id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType, from, to}, nil
+	return &StreamSession{sam.Config.I2PConfig.Sam(), id, conn, keys, time.Duration(600 * time.Second), time.Now(), sigType, from, to}, nil
 }
 
 // lookup name, convienence function

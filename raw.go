@@ -63,7 +63,7 @@ func (s *SAM) NewRawSession(id string, keys I2PKeys, options []string, udpPort i
 	if err != nil {
 		return nil, err
 	}
-	return &RawSession{s.address, id, conn, udpconn, keys, rUDPAddr}, nil
+	return &RawSession{s.Config.I2PConfig.Sam(), id, conn, udpconn, keys, rUDPAddr}, nil
 }
 
 // Reads one raw datagram sent to the destination of the DatagramSession. Returns
