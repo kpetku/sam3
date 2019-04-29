@@ -49,7 +49,7 @@ func NewSAM(address string) (*SAM, error) {
 	if err != nil {
 		return nil, err
 	}
-    if _, err := conn.Write(s.Config.HelloBytes()); err != nil {
+	if _, err := conn.Write(s.Config.HelloBytes()); err != nil {
 		conn.Close()
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func NewSAM(address string) (*SAM, error) {
 	if strings.Contains(string(buf[:n]), "HELLO REPLY RESULT=OK") {
 		s.Config.I2PConfig.SetSAMAddress(address)
 		s.conn = conn
-		s.Config.I2PConfig.DestinationKeys = nil
+		//s.Config.I2PConfig.DestinationKeys = nil
 		s.resolver, err = NewSAMResolver(&s)
 		if err != nil {
 			return nil, err
@@ -80,7 +80,7 @@ func NewSAM(address string) (*SAM, error) {
 
 func (sam *SAM) Keys() (k *I2PKeys) {
 	//TODO: copy them?
-	k = sam.Config.I2PConfig.DestinationKeys
+	k = &sam.Config.I2PConfig.DestinationKeys
 	return
 }
 
@@ -89,7 +89,7 @@ func (sam *SAM) ReadKeys(r io.Reader) (err error) {
 	var keys I2PKeys
 	keys, err = LoadKeysIncompat(r)
 	if err == nil {
-		sam.Config.I2PConfig.DestinationKeys = &keys
+		sam.Config.I2PConfig.DestinationKeys = keys
 	}
 	return
 }
@@ -100,7 +100,7 @@ func (sam *SAM) EnsureKeyfile(fname string) (keys I2PKeys, err error) {
 		// transient
 		keys, err = sam.NewKeys()
 		if err == nil {
-			sam.Config.I2PConfig.DestinationKeys = &keys
+			sam.Config.I2PConfig.DestinationKeys = keys
 		}
 	} else {
 		// persistant
@@ -109,7 +109,7 @@ func (sam *SAM) EnsureKeyfile(fname string) (keys I2PKeys, err error) {
 			// make the keys
 			keys, err = sam.NewKeys()
 			if err == nil {
-				sam.Config.I2PConfig.DestinationKeys = &keys
+				sam.Config.I2PConfig.DestinationKeys = keys
 				// save keys
 				var f io.WriteCloser
 				f, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0600)
@@ -125,7 +125,7 @@ func (sam *SAM) EnsureKeyfile(fname string) (keys I2PKeys, err error) {
 			if err == nil {
 				keys, err = LoadKeysIncompat(f)
 				if err == nil {
-					sam.Config.I2PConfig.DestinationKeys = &keys
+					sam.Config.I2PConfig.DestinationKeys = keys
 				}
 			}
 		}
