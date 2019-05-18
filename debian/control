@@ -15,7 +15,8 @@ Testsuite: autopkgtest-pkg-go
 
 Package: golang-github-eyedeekay-sam3-dev
 Architecture: all
-Depends: ${misc:Depends}, (i2p | i2pd)
+Depends: ${misc:Depends},
+    i2p | i2pd
 Description: Go library for the I2P SAMv3.0 bridge,
  used to build anonymous/pseudonymous end-to-end encrypted sockets.
  README go library for the I2P SAMv3.0
