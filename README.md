@@ -78,7 +78,7 @@ Error handling was omitted in the above code for readability.
 
 ## Testing ##
 
-* `go test` runs the whole suite (takes 90+ sec to perform!)
+* `go test -tags=nettest` runs the whole suite (takes 90+ sec to perform!)
 * `go test -short` runs the shorter variant, does not connect to anything
 
 ## License ##
