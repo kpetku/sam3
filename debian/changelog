@@ -4,7 +4,7 @@ golang-github-eyedeekay-sam3 (0.3.2.0) bionic; urgency=medium
   * Bug fixes, create stable branch
   * Move i2pkeys
 
- -- idk <hankhill19580@gmail.com>  Fri, 18 May 2019 18:32:21 -0500
+ -- idk <hankhill19580@gmail.com>  Fri, 18 May 2019 18:32:51 -0500
 
 
 golang-github-eyedeekay-sam3 (0.0~git20190223.af5a3f3) bionic; urgency=medium
