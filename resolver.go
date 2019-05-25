@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 type SAMResolver struct {
@@ -29,19 +31,19 @@ func NewFullSAMResolver(address string) (*SAMResolver, error) {
 
 // Performs a lookup, probably this order: 1) routers known addresses, cached
 // addresses, 3) by asking peers in the I2P network.
-func (sam *SAMResolver) Resolve(name string) (I2PAddr, error) {
+func (sam *SAMResolver) Resolve(name string) (i2pkeys.I2PAddr, error) {
 	if _, err := sam.conn.Write([]byte("NAMING LOOKUP NAME=" + name + "\n")); err != nil {
 		sam.Close()
-		return I2PAddr(""), err
+		return i2pkeys.I2PAddr(""), err
 	}
 	buf := make([]byte, 4096)
 	n, err := sam.conn.Read(buf)
 	if err != nil {
 		sam.Close()
-		return I2PAddr(""), err
+		return i2pkeys.I2PAddr(""), err
 	}
 	if n <= 13 || !strings.HasPrefix(string(buf[:n]), "NAMING REPLY ") {
-		return I2PAddr(""), errors.New("Failed to parse.")
+		return i2pkeys.I2PAddr(""), errors.New("Failed to parse.")
 	}
 	s := bufio.NewScanner(bytes.NewReader(buf[13:n]))
 	s.Split(bufio.ScanWords)
@@ -58,12 +60,12 @@ func (sam *SAMResolver) Resolve(name string) (I2PAddr, error) {
 		} else if text == "NAME="+name {
 			continue
 		} else if strings.HasPrefix(text, "VALUE=") {
-			return I2PAddr(text[6:]), nil
+			return i2pkeys.I2PAddr(text[6:]), nil
 		} else if strings.HasPrefix(text, "MESSAGE=") {
 			errStr += " " + text[8:]
 		} else {
 			continue
 		}
 	}
-	return I2PAddr(""), errors.New(errStr)
+	return i2pkeys.I2PAddr(""), errors.New(errStr)
 }

@@ -9,14 +9,16 @@ import (
 	"net"
 	"strings"
 	"time"
+
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 // Represents a streaming session.
 type StreamSession struct {
-	samAddr  string   // address to the sam bridge (ipv4:port)
-	id       string   // tunnel name
-	conn     net.Conn // connection to sam
-	keys     I2PKeys  // i2p destination keys
+	samAddr  string          // address to the sam bridge (ipv4:port)
+	id       string          // tunnel name
+	conn     net.Conn        // connection to sam
+	keys     i2pkeys.I2PKeys // i2p destination keys
 	Timeout  time.Duration
 	Deadline time.Time
 	sigType  string
@@ -46,18 +48,18 @@ func (ss *StreamSession) Close() error {
 }
 
 // Returns the I2P destination (the address) of the stream session
-func (ss *StreamSession) Addr() I2PAddr {
+func (ss *StreamSession) Addr() i2pkeys.I2PAddr {
 	return ss.keys.Addr()
 }
 
 // Returns the keys associated with the stream session
-func (ss *StreamSession) Keys() I2PKeys {
+func (ss *StreamSession) Keys() i2pkeys.I2PKeys {
 	return ss.keys
 }
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
 // specified. See the I2P documentation for a full list of options.
-func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*StreamSession, error) {
+func (sam *SAM) NewStreamSession(id string, keys i2pkeys.I2PKeys, options []string) (*StreamSession, error) {
 	conn, err := sam.newGenericSession("STREAM", id, keys, options, []string{})
 	if err != nil {
 		return nil, err
@@ -67,7 +69,7 @@ func (sam *SAM) NewStreamSession(id string, keys I2PKeys, options []string) (*St
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
 // specified. See the I2P documentation for a full list of options.
-func (sam *SAM) NewStreamSessionWithSignature(id string, keys I2PKeys, options []string, sigType string) (*StreamSession, error) {
+func (sam *SAM) NewStreamSessionWithSignature(id string, keys i2pkeys.I2PKeys, options []string, sigType string) (*StreamSession, error) {
 	conn, err := sam.newGenericSessionWithSignature("STREAM", id, keys, sigType, options, []string{})
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ func (sam *SAM) NewStreamSessionWithSignature(id string, keys I2PKeys, options [
 
 // Creates a new StreamSession with the I2CP- and streaminglib options as
 // specified. See the I2P documentation for a full list of options.
-func (sam *SAM) NewStreamSessionWithSignatureAndPorts(id, from, to string, keys I2PKeys, options []string, sigType string) (*StreamSession, error) {
+func (sam *SAM) NewStreamSessionWithSignatureAndPorts(id, from, to string, keys i2pkeys.I2PKeys, options []string, sigType string) (*StreamSession, error) {
 	conn, err := sam.newGenericSessionWithSignatureAndPorts("STREAM", id, from, to, keys, sigType, options, []string{})
 	if err != nil {
 		return nil, err
@@ -86,14 +88,14 @@ func (sam *SAM) NewStreamSessionWithSignatureAndPorts(id, from, to string, keys 
 }
 
 // lookup name, convienence function
-func (s *StreamSession) Lookup(name string) (I2PAddr, error) {
+func (s *StreamSession) Lookup(name string) (i2pkeys.I2PAddr, error) {
 	sam, err := NewSAM(s.samAddr)
 	if err == nil {
 		addr, err := sam.Lookup(name)
 		sam.Close()
 		return addr, err
 	}
-	return I2PAddr(""), err
+	return i2pkeys.I2PAddr(""), err
 }
 
 // context-aware dialer, eventually...
@@ -115,7 +117,7 @@ func (s *StreamSession) DialContextI2P(ctx context.Context, n, addr string) (*SA
 		}
 	}
 
-	i2paddr, err := NewI2PAddrFromString(addr)
+	i2paddr, err := i2pkeys.NewI2PAddrFromString(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +159,7 @@ func (s *StreamSession) deadline(ctx context.Context, now time.Time) (earliest t
 // implement net.Dialer
 func (s *StreamSession) Dial(n, addr string) (c net.Conn, err error) {
 
-	var i2paddr I2PAddr
+	var i2paddr i2pkeys.I2PAddr
 	var host string
 	host, _, err = net.SplitHostPort(addr)
 	if err == nil {
@@ -167,7 +169,7 @@ func (s *StreamSession) Dial(n, addr string) (c net.Conn, err error) {
 			i2paddr, err = s.Lookup(host)
 		} else {
 			// probably a destination
-			i2paddr = I2PAddr(host)
+			i2paddr = i2pkeys.I2PAddr(host)
 		}
 		if err == nil {
 			return s.DialI2P(i2paddr)
@@ -177,7 +179,7 @@ func (s *StreamSession) Dial(n, addr string) (c net.Conn, err error) {
 }
 
 // Dials to an I2P destination and returns a SAMConn, which implements a net.Conn.
-func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
+func (s *StreamSession) DialI2P(addr i2pkeys.I2PAddr) (*SAMConn, error) {
 	sam, err := NewSAM(s.samAddr)
 	if err != nil {
 		return nil, err
@@ -203,7 +205,7 @@ func (s *StreamSession) DialI2P(addr I2PAddr) (*SAMConn, error) {
 		case "STATUS":
 			continue
 		case "RESULT=OK":
-			return &SAMConn{s.keys.addr, addr, conn}, nil
+			return &SAMConn{s.keys.Address, addr, conn}, nil
 		case "RESULT=CANT_REACH_PEER":
 			conn.Close()
 			return nil, errors.New("Can not reach peer")
@@ -242,7 +244,7 @@ type StreamListener struct {
 	// our session id
 	id string
 	// our local address for this sam socket
-	laddr I2PAddr
+	laddr i2pkeys.I2PAddr
 }
 
 // get our address
@@ -281,7 +283,7 @@ func (l *StreamListener) AcceptI2P() (*SAMConn, error) {
 					dest = strings.Trim(dest, "\n")
 					return &SAMConn{
 						laddr: l.laddr,
-						raddr: I2PAddr(dest),
+						raddr: i2pkeys.I2PAddr(dest),
 						conn:  s.conn,
 					}, nil
 				} else {

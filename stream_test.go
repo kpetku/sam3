@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 func Test_StreamingDial(t *testing.T) {
@@ -222,7 +224,7 @@ func ExampleStreamListener() {
 	quit := make(chan bool)
 
 	// Client connecting to the server
-	go func(server I2PAddr) {
+	go func(server i2pkeys.I2PAddr) {
 		csam, err := NewSAM(samBridge)
 		if err != nil {
 			fmt.Println(err.Error())
