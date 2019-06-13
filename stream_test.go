@@ -4,6 +4,7 @@ package sam3
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 
@@ -192,8 +193,10 @@ func ExampleStreamSession() {
 	n, err := conn.Read(buf)
 	if !strings.Contains(strings.ToLower(string(buf[:n])), "http") && !strings.Contains(strings.ToLower(string(buf[:n])), "html") {
 		fmt.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
+		log.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
 	} else {
 		fmt.Println("Read HTTP/HTML from zzz.i2p")
+		log.Println("Read HTTP/HTML from zzz.i2p")
 	}
 	return
 

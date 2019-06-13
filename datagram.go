@@ -15,12 +15,13 @@ import (
 // also end-to-end encrypted, signed and includes replay-protection. And they
 // are also built to be surveillance-resistant (yey!).
 type DatagramSession struct {
-	samAddr  string          // address to the sam bridge (ipv4:port)
-	id       string          // tunnel name
-	conn     net.Conn        // connection to sam bridge
-	udpconn  *net.UDPConn    // used to deliver datagrams
-	keys     i2pkeys.I2PKeys // i2p destination keys
-	rUDPAddr *net.UDPAddr    // the SAM bridge UDP-port
+	samAddr    string           // address to the sam bridge (ipv4:port)
+	id         string           // tunnel name
+	conn       net.Conn         // connection to sam bridge
+	udpconn    *net.UDPConn     // used to deliver datagrams
+	keys       i2pkeys.I2PKeys  // i2p destination keys
+	rUDPAddr   *net.UDPAddr     // the SAM bridge UDP-port
+	remoteAddr *i2pkeys.I2PAddr // optional remote I2P address
 }
 
 // Creates a new datagram session. udpPort is the UDP port SAM is listening on,
@@ -59,11 +60,15 @@ func (s *SAM) NewDatagramSession(id string, keys i2pkeys.I2PKeys, options []stri
 	if err != nil {
 		return nil, err
 	}
-	return &DatagramSession{s.address, id, conn, udpconn, keys, rUDPAddr}, nil
+	return &DatagramSession{s.address, id, conn, udpconn, keys, rUDPAddr, nil}, nil
 }
 
 func (s *DatagramSession) B32() string {
 	return s.keys.Addr().Base32()
+}
+
+func (s *DatagramSession) RemoteAddr() net.Addr {
+	return s.remoteAddr
 }
 
 // Reads one datagram sent to the destination of the DatagramSession. Returns
@@ -103,6 +108,11 @@ func (s *DatagramSession) ReadFrom(b []byte) (n int, addr net.Addr, err error) {
 	}
 }
 
+func (s *DatagramSession) Read(b []byte) (n int, err error) {
+	rint, _, rerr := s.ReadFrom(b)
+	return rint, rerr
+}
+
 // Sends one signed datagram to the destination specified. At the time of
 // writing, maximum size is 31 kilobyte, but this may change in the future.
 // Implements net.PacketConn.
@@ -111,6 +121,10 @@ func (s *DatagramSession) WriteTo(b []byte, addr net.Addr) (n int, err error) {
 	msg := append(header, b...)
 	n, err = s.udpconn.WriteToUDP(msg, s.rUDPAddr)
 	return n, err
+}
+
+func (s *DatagramSession) Write(b []byte) (int, error) {
+	return s.WriteTo(b, s.remoteAddr)
 }
 
 // Closes the DatagramSession. Implements net.PacketConn
