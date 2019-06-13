@@ -1,18 +1,20 @@
 package sam3
 
 import (
+	"github.com/eyedeekay/sam3/i2pkeys"
 	"net"
 	"time"
 )
 
+/*
 import (
 	. "github.com/eyedeekay/sam3/i2pkeys"
 )
-
+*/
 // Implements net.Conn
 type SAMConn struct {
-	laddr I2PAddr
-	raddr I2PAddr
+	laddr i2pkeys.I2PAddr
+	raddr i2pkeys.I2PAddr
 	conn  net.Conn
 }
 
@@ -38,7 +40,7 @@ func (sc *SAMConn) LocalAddr() net.Addr {
 }
 
 // Implements net.Conn
-func (sc *SAMConn) localAddr() I2PAddr {
+func (sc *SAMConn) localAddr() i2pkeys.I2PAddr {
 	return sc.laddr
 }
 
@@ -47,7 +49,7 @@ func (sc *SAMConn) RemoteAddr() net.Addr {
 }
 
 // Implements net.Conn
-func (sc *SAMConn) remoteAddr() I2PAddr {
+func (sc *SAMConn) remoteAddr() i2pkeys.I2PAddr {
 	return sc.raddr
 }
 

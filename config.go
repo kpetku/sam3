@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-)
 
-import (
-	. "github.com/eyedeekay/sam3/i2pkeys"
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 // sam config
@@ -38,7 +36,7 @@ func (cfg *Config) StreamSession() (session *StreamSession, err error) {
 	s, err = NewSAM(cfg.Addr)
 	if err == nil {
 		// ensure keys exist
-		var keys I2PKeys
+		var keys i2pkeys.I2PKeys
 		keys, err = s.EnsureKeyfile(cfg.Keyfile)
 		if err == nil {
 			// create session
@@ -55,7 +53,7 @@ func (cfg *Config) DatagramSession() (session *DatagramSession, err error) {
 	s, err = NewSAM(cfg.Addr)
 	if err == nil {
 		// ensure keys exist
-		var keys I2PKeys
+		var keys i2pkeys.I2PKeys
 		keys, err = s.EnsureKeyfile(cfg.Keyfile)
 		if err == nil {
 			// determine udp port

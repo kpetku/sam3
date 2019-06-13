@@ -4,12 +4,11 @@ package sam3
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"testing"
-)
 
-import (
-	. "github.com/eyedeekay/sam3/i2pkeys"
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 func Test_StreamingDial(t *testing.T) {
@@ -194,8 +193,10 @@ func ExampleStreamSession() {
 	n, err := conn.Read(buf)
 	if !strings.Contains(strings.ToLower(string(buf[:n])), "http") && !strings.Contains(strings.ToLower(string(buf[:n])), "html") {
 		fmt.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
+		log.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
 	} else {
 		fmt.Println("Read HTTP/HTML from zzz.i2p")
+		log.Println("Read HTTP/HTML from zzz.i2p")
 	}
 	return
 
@@ -226,7 +227,7 @@ func ExampleStreamListener() {
 	quit := make(chan bool)
 
 	// Client connecting to the server
-	go func(server I2PAddr) {
+	go func(server i2pkeys.I2PAddr) {
 		csam, err := NewSAM(samBridge)
 		if err != nil {
 			fmt.Println(err.Error())

@@ -21,8 +21,8 @@ var (
 // a certificate. String() returns you the full content of I2PKeys and Addr()
 // returns the public keys.
 type I2PKeys struct {
-	addr I2PAddr // only the public key
-	both string  // both public and private keys
+	Address I2PAddr // only the public key
+	Both    string  // both public and private keys
 }
 
 // Creates I2PKeys from an I2PAddr and a public/private keypair string (as
@@ -44,19 +44,19 @@ func LoadKeysIncompat(r io.Reader) (k I2PKeys, err error) {
 
 // store keys in non standard format
 func StoreKeysIncompat(k I2PKeys, w io.Writer) (err error) {
-	_, err = io.WriteString(w, k.addr.Base64()+"\n"+k.both)
+	_, err = io.WriteString(w, k.Address.Base64()+"\n"+k.Both)
 	return
 }
 
 // Returns the public keys of the I2PKeys.
 func (k I2PKeys) Addr() I2PAddr {
-	return k.addr
+	return k.Address
 }
 
 // Returns the keys (both public and private), in I2Ps base64 format. Use this
 // when you create sessions.
 func (k I2PKeys) String() string {
-	return k.both
+	return k.Both
 }
 
 // I2PAddr represents an I2P destination, almost equivalent to an IP address.

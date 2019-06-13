@@ -6,10 +6,8 @@ import (
 	"net"
 	"strconv"
 	"time"
-)
 
-import (
-	. "github.com/eyedeekay/sam3/i2pkeys"
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 // The RawSession provides no authentication of senders, and there is no sender
@@ -19,17 +17,17 @@ import (
 // that is needed. Raw datagrams may be at most 32 kB in size. There is no
 // overhead of authentication, which is the reason to use this..
 type RawSession struct {
-	samAddr  string       // address to the sam bridge (ipv4:port)
-	id       string       // tunnel name
-	conn     net.Conn     // connection to sam bridge
-	udpconn  *net.UDPConn // used to deliver datagrams
-	keys     I2PKeys      // i2p destination keys
-	rUDPAddr *net.UDPAddr // the SAM bridge UDP-port
+	samAddr  string          // address to the sam bridge (ipv4:port)
+	id       string          // tunnel name
+	conn     net.Conn        // connection to sam bridge
+	udpconn  *net.UDPConn    // used to deliver datagrams
+	keys     i2pkeys.I2PKeys // i2p destination keys
+	rUDPAddr *net.UDPAddr    // the SAM bridge UDP-port
 }
 
 // Creates a new raw session. udpPort is the UDP port SAM is listening on,
 // and if you set it to zero, it will use SAMs standard UDP port.
-func (s *SAM) NewRawSession(id string, keys I2PKeys, options []string, udpPort int) (*RawSession, error) {
+func (s *SAM) NewRawSession(id string, keys i2pkeys.I2PKeys, options []string, udpPort int) (*RawSession, error) {
 	if udpPort > 65335 || udpPort < 0 {
 		return nil, errors.New("udpPort needs to be in the intervall 0-65335")
 	}
@@ -87,7 +85,7 @@ func (s *RawSession) Read(b []byte) (n int, err error) {
 
 // Sends one raw datagram to the destination specified. At the time of writing,
 // maximum size is 32 kilobyte, but this may change in the future.
-func (s *RawSession) WriteTo(b []byte, addr I2PAddr) (n int, err error) {
+func (s *RawSession) WriteTo(b []byte, addr i2pkeys.I2PAddr) (n int, err error) {
 	header := []byte("3.0 " + s.id + " " + addr.String() + "\n")
 	msg := append(header, b...)
 	n, err = s.udpconn.WriteToUDP(msg, s.rUDPAddr)
@@ -105,7 +103,7 @@ func (s *RawSession) Close() error {
 }
 
 // Returns the local I2P destination of the RawSession.
-func (s *RawSession) LocalAddr() I2PAddr {
+func (s *RawSession) LocalAddr() i2pkeys.I2PAddr {
 	return s.keys.Addr()
 }
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 golang-github-eyedeekay-sam3 (0.3.2.5) bionic; urgency=medium
 
   [ idk ]
@@ -6,6 +7,23 @@ golang-github-eyedeekay-sam3 (0.3.2.5) bionic; urgency=medium
   * Bug fixes
 
  -- idk <hankhill19580@gmail.com>  Thu, 28 Feb 2019 21:40:35 -0500
+=======
+golang-github-eyedeekay-sam3 (0.3.2.01) bionic; urgency=medium
+
+  [ idk ]
+  * completely remove the old i2pkeys version and replace it with the new one.
+
+ -- idk <hankhill19580@gmail.com>  Sat, 25 May 2019 14:38:11 -0500
+
+golang-github-eyedeekay-sam3 (0.3.2.0) bionic; urgency=medium
+
+  [ idk ]
+  * Bug fixes, create stable branch
+  * Move i2pkeys
+
+ -- idk <hankhill19580@gmail.com>  Sat, 18 May 2019 18:32:51 -0500
+
+>>>>>>> stable
 
 golang-github-eyedeekay-sam3 (0.0~git20190223.af5a3f3) bionic; urgency=medium
 
