@@ -6,10 +6,8 @@ import (
 	"net"
 	"strconv"
 	"time"
-)
 
-import (
-	. "github.com/eyedeekay/sam3/i2pkeys"
+	"github.com/eyedeekay/sam3/i2pkeys"
 )
 
 // The DatagramSession implements net.PacketConn. It works almost like ordinary
@@ -17,17 +15,18 @@ import (
 // also end-to-end encrypted, signed and includes replay-protection. And they
 // are also built to be surveillance-resistant (yey!).
 type DatagramSession struct {
-	samAddr  string       // address to the sam bridge (ipv4:port)
-	id       string       // tunnel name
-	conn     net.Conn     // connection to sam bridge
-	udpconn  *net.UDPConn // used to deliver datagrams
-	keys     I2PKeys      // i2p destination keys
-	rUDPAddr *net.UDPAddr // the SAM bridge UDP-port
+	samAddr  string          // address to the sam bridge (ipv4:port)
+	id       string          // tunnel name
+	conn     net.Conn        // connection to sam bridge
+	udpconn  *net.UDPConn    // used to deliver datagrams
+	keys     i2pkeys.I2PKeys // i2p destination keys
+	rUDPAddr *net.UDPAddr    // the SAM bridge UDP-port
+    remoteAddr *i2pkeys.I2PAddr // optional remote I2P address
 }
 
 // Creates a new datagram session. udpPort is the UDP port SAM is listening on,
 // and if you set it to zero, it will use SAMs standard UDP port.
-func (s *SAM) NewDatagramSession(id string, keys I2PKeys, options []string, udpPort int) (*DatagramSession, error) {
+func (s *SAM) NewDatagramSession(id string, keys i2pkeys.I2PKeys, options []string, udpPort int) (*DatagramSession, error) {
 	if udpPort > 65335 || udpPort < 0 {
 		return nil, errors.New("udpPort needs to be in the intervall 0-65335")
 	}
@@ -61,11 +60,15 @@ func (s *SAM) NewDatagramSession(id string, keys I2PKeys, options []string, udpP
 	if err != nil {
 		return nil, err
 	}
-	return &DatagramSession{s.Config.I2PConfig.Sam(), id, conn, udpconn, keys, rUDPAddr}, nil
+	return &DatagramSession{s.address, id, conn, udpconn, keys, rUDPAddr, nil}, nil
 }
 
 func (s *DatagramSession) B32() string {
 	return s.keys.Addr().Base32()
+}
+
+func (s *DatagramSession) RemoteAddr() net.Addr {
+    return s.remoteAddr
 }
 
 // Reads one datagram sent to the destination of the DatagramSession. Returns
@@ -80,7 +83,7 @@ func (s *DatagramSession) ReadFrom(b []byte) (n int, addr net.Addr, err error) {
 		var saddr *net.UDPAddr
 		n, saddr, err = s.udpconn.ReadFromUDP(buf)
 		if err != nil {
-			return 0, I2PAddr(""), err
+			return 0, i2pkeys.I2PAddr(""), err
 		}
 		if bytes.Equal(saddr.IP, s.rUDPAddr.IP) {
 			continue
@@ -89,11 +92,11 @@ func (s *DatagramSession) ReadFrom(b []byte) (n int, addr net.Addr, err error) {
 	}
 	i := bytes.IndexByte(buf, byte('\n'))
 	if i > 4096 || i > n {
-		return 0, I2PAddr(""), errors.New("Could not parse incomming message remote address.")
+		return 0, i2pkeys.I2PAddr(""), errors.New("Could not parse incomming message remote address.")
 	}
-	raddr, err := NewI2PAddrFromString(string(buf[:i]))
+	raddr, err := i2pkeys.NewI2PAddrFromString(string(buf[:i]))
 	if err != nil {
-		return 0, I2PAddr(""), errors.New("Could not parse incomming message remote address: " + err.Error())
+		return 0, i2pkeys.I2PAddr(""), errors.New("Could not parse incomming message remote address: " + err.Error())
 	}
 	// shift out the incomming address to contain only the data received
 	if (n - i + 1) > len(b) {
@@ -105,6 +108,11 @@ func (s *DatagramSession) ReadFrom(b []byte) (n int, addr net.Addr, err error) {
 	}
 }
 
+func (s *DatagramSession) Read(b []byte) (n int, err error){
+    rint, _, rerr := s.ReadFrom(b)
+    return rint, rerr
+}
+
 // Sends one signed datagram to the destination specified. At the time of
 // writing, maximum size is 31 kilobyte, but this may change in the future.
 // Implements net.PacketConn.
@@ -113,6 +121,10 @@ func (s *DatagramSession) WriteTo(b []byte, addr net.Addr) (n int, err error) {
 	msg := append(header, b...)
 	n, err = s.udpconn.WriteToUDP(msg, s.rUDPAddr)
 	return n, err
+}
+
+func (s *DatagramSession) Write(b []byte) (int, error){
+    return s.WriteTo(b, s.remoteAddr)
 }
 
 // Closes the DatagramSession. Implements net.PacketConn
@@ -126,7 +138,7 @@ func (s *DatagramSession) Close() error {
 }
 
 // Returns the I2P destination of the DatagramSession.
-func (s *DatagramSession) LocalI2PAddr() I2PAddr {
+func (s *DatagramSession) LocalI2PAddr() i2pkeys.I2PAddr {
 	return s.keys.Addr()
 }
 
