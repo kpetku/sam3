@@ -132,3 +132,54 @@ func ExampleDatagramSession() {
 	// Output:
 	//Got message: Hello myself!
 }
+
+func ExampleMiniDatagramSession() {
+	// Creates a new DatagramSession, which behaves just like a net.PacketConn.
+
+	const samBridge = "127.0.0.1:7656"
+
+	sam, err := NewSAM(samBridge)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	keys, err := sam.NewKeys()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	myself := keys.Addr()
+
+	// See the example Option_* variables.
+	dg, err := sam.NewDatagramSession("MINIDGTUN", keys, Options_Small, 0)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	someone, err := sam.Lookup("zzz.i2p")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	err = dg.SetWriteBuffer(14 * 1024)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	dg.WriteTo([]byte("Hello stranger!"), someone)
+	dg.WriteTo([]byte("Hello myself!"), myself)
+
+	buf := make([]byte, 31*1024)
+	n, _, err := dg.ReadFrom(buf)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	log.Println("Got message: '" + string(buf[:n]) + "'")
+	fmt.Println("Got message: " + string(buf[:n]))
+
+	return
+	// Output:
+	//Got message: Hello myself!
+}

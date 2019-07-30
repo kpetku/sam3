@@ -173,3 +173,7 @@ func (s *DatagramSession) SetReadDeadline(t time.Time) error {
 func (s *DatagramSession) SetWriteDeadline(t time.Time) error {
 	return s.udpconn.SetWriteDeadline(t)
 }
+
+func (s *DatagramSession) SetWriteBuffer(bytes int) error {
+	return s.udpconn.SetWriteBuffer(bytes)
+}
