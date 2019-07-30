@@ -117,7 +117,7 @@ func (s *DatagramSession) Read(b []byte) (n int, err error) {
 // writing, maximum size is 31 kilobyte, but this may change in the future.
 // Implements net.PacketConn.
 func (s *DatagramSession) WriteTo(b []byte, addr net.Addr) (n int, err error) {
-	header := []byte("3.0 " + s.id + " " + addr.String() + "\n")
+	header := []byte("3.1 " + s.id + " " + addr.String() + "\n")
 	msg := append(header, b...)
 	n, err = s.udpconn.WriteToUDP(msg, s.rUDPAddr)
 	return n, err
