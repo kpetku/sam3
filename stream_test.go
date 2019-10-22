@@ -37,14 +37,14 @@ func Test_StreamingDial(t *testing.T) {
 		return
 	}
 	fmt.Println("\tNotice: This may fail if your I2P node is not well integrated in the I2P network.")
-	fmt.Println("\tLooking up i2p-projekt.i2p")
-	forumAddr, err := sam.Lookup("i2p-projekt.i2p")
+	fmt.Println("\tLooking up inr.i2p")
+	forumAddr, err := sam.Lookup("inr.i2p")
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fail()
 		return
 	}
-	fmt.Println("\tDialing i2p-projekt.i2p")
+	fmt.Println("\tDialing inr.i2p")
 	conn, err := ss.DialI2P(forumAddr)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -193,10 +193,8 @@ func ExampleStreamSession() {
 	n, err := conn.Read(buf)
 	if !strings.Contains(strings.ToLower(string(buf[:n])), "http") && !strings.Contains(strings.ToLower(string(buf[:n])), "html") {
 		fmt.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
-		log.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
 	} else {
 		fmt.Println("Read HTTP/HTML from zzz.i2p")
-		log.Println("Read HTTP/HTML from zzz.i2p")
 	}
 	return
 
