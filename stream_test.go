@@ -37,14 +37,14 @@ func Test_StreamingDial(t *testing.T) {
 		return
 	}
 	fmt.Println("\tNotice: This may fail if your I2P node is not well integrated in the I2P network.")
-	fmt.Println("\tLooking up inr.i2p")
-	forumAddr, err := sam.Lookup("inr.i2p")
+	fmt.Println("\tLooking up i2p-projekt.i2p")
+	forumAddr, err := sam.Lookup("i2p-projekt.i2p")
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fail()
 		return
 	}
-	fmt.Println("\tDialing inr.i2p(", forumAddr.Base32(), ")")
+	fmt.Println("\tDialing i2p-projekt.i2p(", forumAddr.Base32(), ")")
 	conn, err := ss.DialI2P(forumAddr)
 	if err != nil {
 		fmt.Println(err.Error())

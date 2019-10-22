@@ -51,7 +51,7 @@ func (sam *SAMResolver) Resolve(name string) (i2pkeys.I2PAddr, error) {
 	errStr := ""
 	for s.Scan() {
 		text := s.Text()
-        //log.Println("SAM3", text)
+		//log.Println("SAM3", text)
 		if text == "RESULT=OK" {
 			continue
 		} else if text == "RESULT=INVALID_KEY" {
