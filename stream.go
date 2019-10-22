@@ -187,7 +187,7 @@ func (s *StreamSession) DialI2P(addr i2pkeys.I2PAddr) (*SAMConn, error) {
 		return nil, err
 	}
 	conn := sam.conn
-	_, err = conn.Write([]byte("STREAM CONNECT ID=" + s.id + " FROM_PORT=" + s.from + " TO_PORT=" + s.to + " DESTINATION=" + addr.Base64() + " SILENT=false\r\n"))
+	_, err = conn.Write([]byte("STREAM CONNECT ID=" + s.id + " FROM_PORT=" + s.from + " TO_PORT=" + s.to + " DESTINATION=" + addr.Base64() + " SILENT=false\n"))
 	if err != nil {
 		conn.Close()
 		return nil, err
@@ -304,7 +304,7 @@ func (l *StreamListener) AcceptI2P() (*SAMConn, error) {
 	if err == nil {
 		// we connected to sam
 		// send accept() command
-		_, err = io.WriteString(s.conn, "STREAM ACCEPT ID="+l.id+" SILENT=false\r\n")
+		_, err = io.WriteString(s.conn, "STREAM ACCEPT ID="+l.id+" SILENT=false\n")
 		// read reply
 		rd := bufio.NewReader(s.conn)
 		// read first line

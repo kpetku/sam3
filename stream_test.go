@@ -30,7 +30,7 @@ func Test_StreamingDial(t *testing.T) {
 		return
 	}
 	fmt.Println("\tBuilding tunnel")
-	ss, err := sam.NewStreamSession("streamTun", keys, []string{"inbound.length=0", "outbound.length=0", "inbound.lengthVariance=0", "outbound.lengthVariance=0", "inbound.quantity=1", "outbound.quantity=1"})
+	ss, err := sam.NewStreamSession("streamTun", keys, []string{"inbound.length=1", "outbound.length=1", "inbound.lengthVariance=0", "outbound.lengthVariance=0", "inbound.quantity=1", "outbound.quantity=1"})
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fail()
@@ -44,7 +44,7 @@ func Test_StreamingDial(t *testing.T) {
 		t.Fail()
 		return
 	}
-	fmt.Println("\tDialing inr.i2p")
+	fmt.Println("\tDialing inr.i2p(", forumAddr.Base32(), ")")
 	conn, err := ss.DialI2P(forumAddr)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -193,8 +193,10 @@ func ExampleStreamSession() {
 	n, err := conn.Read(buf)
 	if !strings.Contains(strings.ToLower(string(buf[:n])), "http") && !strings.Contains(strings.ToLower(string(buf[:n])), "html") {
 		fmt.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
+		log.Printf("Probably failed to StreamSession.DialI2P(zzz.i2p)? It replied %d bytes, but nothing that looked like http/html", n)
 	} else {
 		fmt.Println("Read HTTP/HTML from zzz.i2p")
+		log.Println("Read HTTP/HTML from zzz.i2p")
 	}
 	return
 
