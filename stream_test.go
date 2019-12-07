@@ -44,7 +44,7 @@ func Test_StreamingDial(t *testing.T) {
 		t.Fail()
 		return
 	}
-	fmt.Println("\tDialing i2p-projekt.i2p(", forumAddr.Base32(), ")")
+	fmt.Println("\tDialing i2p-projekt.i2p(", forumAddr.Base32(), forumAddr.DestHash().Hash(), ")")
 	conn, err := ss.DialI2P(forumAddr)
 	if err != nil {
 		fmt.Println(err.Error())

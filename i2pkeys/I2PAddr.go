@@ -80,11 +80,21 @@ func DestHashFromString(str string) (dhash I2PDestHash, err error) {
 	return
 }
 
-// get string representation of i2p dest hash
+// get string representation of i2p dest hash(base32 version)
 func (h I2PDestHash) String() string {
 	b32addr := make([]byte, 56)
 	i2pB32enc.Encode(b32addr, h[:])
 	return string(b32addr[:52]) + ".b32.i2p"
+}
+
+// get base64 representation of i2p dest sha256 hash(the 44-character one)
+func (h I2PDestHash) Hash() string {
+	hash := sha256.New()
+	hash.Write(h[:])
+	digest := hash.Sum(nil)
+	buf := make([]byte, 44)
+	i2pB64enc.Encode(buf, digest)
+	return string(buf)
 }
 
 // Returns "I2P"
