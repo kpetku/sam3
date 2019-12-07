@@ -1,6 +1,6 @@
 
 USER_GH=eyedeekay
-VERSION=0.32.01
+VERSION=0.32.1
 
 echo:
 	@echo "type make version to do release $(VERSION)"

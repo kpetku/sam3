@@ -1,13 +1,11 @@
-<<<<<<< HEAD
-golang-github-eyedeekay-sam3 (0.3.2.5) bionic; urgency=medium
+golang-github-eyedeekay-sam3 (0.3.2.1) bionic; urgency=medium
 
   [ idk ]
-  * Updates to SAMv3.2
-  * Move i2pkeys to own directory/library
-  * Bug fixes
+  * Add support for 44-character destination hashes.
 
- -- idk <hankhill19580@gmail.com>  Thu, 28 Feb 2019 21:40:35 -0500
-=======
+ -- idk <hankhill19580@gmail.com>  Sat, 7 Dec 2019 17:30:30 -0500
+
+
 golang-github-eyedeekay-sam3 (0.3.2.01) bionic; urgency=medium
 
   [ idk ]
@@ -22,8 +20,6 @@ golang-github-eyedeekay-sam3 (0.3.2.0) bionic; urgency=medium
   * Move i2pkeys
 
  -- idk <hankhill19580@gmail.com>  Sat, 18 May 2019 18:32:51 -0500
-
->>>>>>> stable
 
 golang-github-eyedeekay-sam3 (0.0~git20190223.af5a3f3) bionic; urgency=medium
 
