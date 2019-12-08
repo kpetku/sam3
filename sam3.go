@@ -14,7 +14,6 @@ import (
 )
 
 import (
-	. "github.com/eyedeekay/ramp/emit"
 	. "github.com/eyedeekay/sam3/i2pkeys"
 )
 
