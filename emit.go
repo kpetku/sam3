@@ -2,12 +2,11 @@ package sam3
 
 import (
 	"fmt"
-    "log"
+	"log"
 )
 
-
 type SAMEmit struct {
-	i2pconfig.I2PConfig
+	I2PConfig
 }
 
 func (e *SAMEmit) OptStr() string {
@@ -44,20 +43,20 @@ func (e *SAMEmit) LookupBytes(name string) []byte {
 
 func (e *SAMEmit) Create() string {
 	return fmt.Sprintf(
-        //             //1 2 3 4 5 6 7
+		//             //1 2 3 4 5 6 7
 		"SESSION CREATE %s%s%s%s%s%s%s \n",
-		e.I2PConfig.SessionStyle(), //1
-		e.I2PConfig.FromPort(), //2
-		e.I2PConfig.ToPort(), //3
-        e.I2PConfig.ID(), //4
+		e.I2PConfig.SessionStyle(),   //1
+		e.I2PConfig.FromPort(),       //2
+		e.I2PConfig.ToPort(),         //3
+		e.I2PConfig.ID(),             //4
 		e.I2PConfig.DestinationKey(), // 5
-		e.I2PConfig.SignatureType(), // 6
-		e.OptStr(), // 7
+		e.I2PConfig.SignatureType(),  // 6
+		e.OptStr(),                   // 7
 	)
 }
 
 func (e *SAMEmit) CreateBytes() []byte {
-    log.Println("sam command: " + e.Create())
+	log.Println("sam command: " + e.Create())
 	return []byte(e.Create())
 }
 

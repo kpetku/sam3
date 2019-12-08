@@ -2,9 +2,8 @@ package sam3
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
-	"strconv"
-    "math/rand"
 	"strconv"
 	"strings"
 
@@ -23,17 +22,17 @@ type I2PConfig struct {
 	Fromport string
 	Toport   string
 
-	Style string
-    TunType string
+	Style   string
+	TunType string
 
-	DestinationKeys I2PKeys
+	DestinationKeys i2pkeys.I2PKeys
 
 	SigType                   string
 	EncryptLeaseSet           string
 	LeaseSetKey               string
 	LeaseSetPrivateKey        string
 	LeaseSetPrivateSigningKey string
-	LeaseSetKeys              I2PKeys
+	LeaseSetKeys              i2pkeys.I2PKeys
 	InAllowZeroHop            string
 	OutAllowZeroHop           string
 	InLength                  string
@@ -84,12 +83,12 @@ func (f *I2PConfig) SetSAMAddress(addr string) {
 func (f *I2PConfig) ID() string {
 	if f.TunName == "" {
 		b := make([]byte, 12)
-        for i := range b {
-            b[i] = "abcdefghijklmnopqrstuvwxyz"[rand.Intn(len("abcdefghijklmnopqrstuvwxyz"))]
-        }
-        f.TunName = string(b)
+		for i := range b {
+			b[i] = "abcdefghijklmnopqrstuvwxyz"[rand.Intn(len("abcdefghijklmnopqrstuvwxyz"))]
+		}
+		f.TunName = string(b)
 	}
-    return " ID=" + f.TunName + " "
+	return " ID=" + f.TunName + " "
 }
 
 func (f *I2PConfig) Leasesetsettings() (string, string, string) {
@@ -127,10 +126,10 @@ func (f *I2PConfig) ToPort() string {
 }
 
 func (f *I2PConfig) SessionStyle() string {
-    if f.Style != "" {
-        return " STYLE=" + f.Style + " "
-    }
-    return " STYLE=STREAM "
+	if f.Style != "" {
+		return " STYLE=" + f.Style + " "
+	}
+	return " STYLE=STREAM "
 }
 
 func (f *I2PConfig) samMax() float64 {
@@ -173,45 +172,45 @@ func (f *I2PConfig) SignatureType() string {
 }
 
 func (f *I2PConfig) EncryptLease() string {
-    if f.EncryptLeaseSet == "true" {
-        return " i2cp.encryptLeaseSet=true "
-    }
-    return ""
+	if f.EncryptLeaseSet == "true" {
+		return " i2cp.encryptLeaseSet=true "
+	}
+	return ""
 }
 
 func (f *I2PConfig) Reliability() string {
-    if f.MessageReliability != "" {
-        return " i2cp.messageReliability=" + f.MessageReliability + " "
-    }
-    return ""
+	if f.MessageReliability != "" {
+		return " i2cp.messageReliability=" + f.MessageReliability + " "
+	}
+	return ""
 }
 
 func (f *I2PConfig) Reduce() string {
-    if f.ReduceIdle == "true" {
-        return "i2cp.reduceOnIdle=" + f.ReduceIdle + "i2cp.reduceIdleTime=" + f.ReduceIdleTime + "i2cp.reduceQuantity=" + f.ReduceIdleQuantity
-    }
-    return ""
+	if f.ReduceIdle == "true" {
+		return "i2cp.reduceOnIdle=" + f.ReduceIdle + "i2cp.reduceIdleTime=" + f.ReduceIdleTime + "i2cp.reduceQuantity=" + f.ReduceIdleQuantity
+	}
+	return ""
 }
 
 func (f *I2PConfig) Close() string {
-    if f.CloseIdle == "true" {
+	if f.CloseIdle == "true" {
 		return "i2cp.closeOnIdle=" + f.CloseIdle + "i2cp.closeIdleTime=" + f.CloseIdleTime
-    }
-    return ""
+	}
+	return ""
 }
 
 func (f *I2PConfig) DoZero() string {
-    r := ""
-    if f.InAllowZeroHop == "true" {
-        r += " inbound.allowZeroHop=" + f.InAllowZeroHop + " "
-    }
-    if f.OutAllowZeroHop == "true" {
-        r += " outbound.allowZeroHop= " + f.OutAllowZeroHop + " "
-    }
-    if f.FastRecieve == "true" {
-        r += " " + f.FastRecieve + " "
-    }
-    return r
+	r := ""
+	if f.InAllowZeroHop == "true" {
+		r += " inbound.allowZeroHop=" + f.InAllowZeroHop + " "
+	}
+	if f.OutAllowZeroHop == "true" {
+		r += " outbound.allowZeroHop= " + f.OutAllowZeroHop + " "
+	}
+	if f.FastRecieve == "true" {
+		r += " " + f.FastRecieve + " "
+	}
+	return r
 }
 func (f *I2PConfig) Print() []string {
 	lsk, lspk, lspsk := f.Leasesetsettings()
@@ -228,8 +227,8 @@ func (f *I2PConfig) Print() []string {
 		f.DoZero(),
 		//"i2cp.fastRecieve=" + f.FastRecieve,
 		"i2cp.gzip=" + f.UseCompression,
-        f.Reduce(),
-        f.Close(),
+		f.Reduce(),
+		f.Close(),
 		f.Reliability(),
 		f.EncryptLease(),
 		lsk, lspk, lspsk,
@@ -268,7 +267,7 @@ func NewConfig(opts ...func(*I2PConfig) error) (*I2PConfig, error) {
 	config.SamMax = "3.2"
 	config.TunName = ""
 	config.TunType = "server"
-    config.Style = "STREAM"
+	config.Style = "STREAM"
 	config.InLength = "3"
 	config.OutLength = "3"
 	config.InQuantity = "2"
@@ -298,7 +297,6 @@ func NewConfig(opts ...func(*I2PConfig) error) (*I2PConfig, error) {
 	}
 	return &config, nil
 }
-
 
 // options map
 type Options map[string]string

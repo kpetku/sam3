@@ -18,11 +18,11 @@ func SetType(s string) func(*SAMEmit) error {
 		} else if s == "DATAGRAM" {
 			c.Style = s
 			return nil
-		}else if s == "RAW" {
-            c.Style = s
-            return nil
-        }
-        return fmt.Errorf("Invalid session STYLE=%s, must be STREAM, DATAGRAM, or RAW")
+		} else if s == "RAW" {
+			c.Style = s
+			return nil
+		}
+		return fmt.Errorf("Invalid session STYLE=%s, must be STREAM, DATAGRAM, or RAW")
 	}
 }
 
