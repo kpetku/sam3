@@ -5,9 +5,6 @@ import (
     "log"
 )
 
-import (
-	"github.com/eyedeekay/ramp/config"
-)
 
 type SAMEmit struct {
 	i2pconfig.I2PConfig
